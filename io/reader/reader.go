@@ -64,5 +64,3 @@ func (r Reader) ReadStringOfLen(n int) (string, error) {
 	}
 	return string(cmdBytes), nil
 }
-
-func Expect(token)

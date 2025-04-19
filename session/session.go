@@ -4,11 +4,11 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/Anurag-Raut/smtp/client/dto/command"
-	"github.com/Anurag-Raut/smtp/client/dto/reply"
-	"github.com/Anurag-Raut/smtp/client/io/reader"
-	"github.com/Anurag-Raut/smtp/client/io/writer"
-	"github.com/Anurag-Raut/smtp/client/parser"
+	"github.com/Yubin-email/smtp-client/dto/command"
+	"github.com/Yubin-email/smtp-client/dto/reply"
+	"github.com/Yubin-email/smtp-client/io/reader"
+	"github.com/Yubin-email/smtp-client/io/writer"
+	"github.com/Yubin-email/smtp-client/parser"
 )
 
 type Session struct {

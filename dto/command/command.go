@@ -3,10 +3,10 @@ package command
 import (
 	"fmt"
 
-	"github.com/Anurag-Raut/smtp/client/config"
-	"github.com/Anurag-Raut/smtp/client/dto/reply"
-	"github.com/Anurag-Raut/smtp/client/io/writer"
-	"github.com/Anurag-Raut/smtp/client/parser"
+	"github.com/Yubin-email/smtp-client/config"
+	"github.com/Yubin-email/smtp-client/dto/reply"
+	"github.com/Yubin-email/smtp-client/io/writer"
+	"github.com/Yubin-email/smtp-client/parser"
 )
 
 func SendEHLO(w *writer.Writer) error {

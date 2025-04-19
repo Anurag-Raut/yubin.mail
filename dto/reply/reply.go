@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/Anurag-Raut/smtp/client/parser"
+	"github.com/Yubin-email/smtp-client/parser"
 )
 
 type Reply struct {

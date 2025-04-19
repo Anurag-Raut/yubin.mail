@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/Anurag-Raut/smtp/client/io/reader"
+	"github.com/Yubin-email/smtp-client/io/reader"
 )
 
 func GetDomainFromEmail(email string) (domain string, err error) {

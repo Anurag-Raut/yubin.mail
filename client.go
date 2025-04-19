@@ -1,4 +1,4 @@
-package client
+package main
 
 import (
 	"errors"
@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"slices"
 
-	"github.com/Anurag-Raut/smtp/client/parser"
-	"github.com/Anurag-Raut/smtp/client/session"
 	"github.com/Anurag-Raut/smtp/logger"
+	"github.com/Yubin-email/smtp-client/parser"
+	"github.com/Yubin-email/smtp-client/session"
 )
 
 type Client struct {

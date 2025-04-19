@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/Anurag-Raut/smtp/server/io/reader"
+	"github.com/Yubin-email/smtp-server/io/reader"
 )
 
 type Parser struct {

@@ -3,7 +3,7 @@ package state
 import (
 	"errors"
 
-	"github.com/Anurag-Raut/smtp/server/store"
+	"github.com/Yubin-email/smtp-server/store"
 )
 
 type MAIL_STEP int

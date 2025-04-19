@@ -1,9 +1,9 @@
 package command
 
 import (
-	"github.com/Anurag-Raut/smtp/server/dto/reply"
-	. "github.com/Anurag-Raut/smtp/server/parser"
-	"github.com/Anurag-Raut/smtp/server/state"
+	"github.com/Yubin-email/smtp-server/dto/reply"
+	. "github.com/Yubin-email/smtp-server/parser"
+	"github.com/Yubin-email/smtp-server/state"
 )
 
 type CommandInterface interface {

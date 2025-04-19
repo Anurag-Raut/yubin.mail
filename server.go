@@ -1,13 +1,13 @@
-package server
+package main
 
 import (
 	"net"
 
-	"github.com/Anurag-Raut/smtp/logger"
-	"github.com/Anurag-Raut/smtp/server/io/reader"
-	"github.com/Anurag-Raut/smtp/server/io/writer"
-	"github.com/Anurag-Raut/smtp/server/session"
-	"github.com/Anurag-Raut/smtp/server/store"
+	"github.com/Yubin-email/smtp-server/io/reader"
+	"github.com/Yubin-email/smtp-server/io/writer"
+	"github.com/Yubin-email/smtp-server/logger"
+	"github.com/Yubin-email/smtp-server/session"
+	"github.com/Yubin-email/smtp-server/store"
 )
 
 type Server struct {
@@ -55,11 +55,11 @@ func NewServer(c Config) *Server {
 }
 
 func (s *Server) Listen() {
-	logger.ServerLogger.Println("Listening on port", s.port)
+	logger.Println("Listening on port", s.port)
 	newListner, err := net.Listen("tcp", s.adddress+":"+s.port)
 	s.listner = newListner
 	if err != nil {
-		logger.ServerLogger.Println("Error: ", err.Error())
+		logger.Println("Error: ", err.Error())
 	}
 
 	for {
@@ -67,10 +67,10 @@ func (s *Server) Listen() {
 		if err != nil {
 			select {
 			case <-s.done:
-				logger.ServerLogger.Println("server is shutting down")
+				logger.Println("server is shutting down")
 				return
 			default:
-				logger.ServerLogger.Println("Error", err.Error())
+				logger.Println("Error", err.Error())
 			}
 		}
 		go handleConn(c)

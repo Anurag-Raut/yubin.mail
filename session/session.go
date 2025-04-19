@@ -1,12 +1,12 @@
 package session
 
 import (
-	"github.com/Anurag-Raut/smtp/server/dto/command"
-	"github.com/Anurag-Raut/smtp/server/dto/reply"
-	"github.com/Anurag-Raut/smtp/server/io/reader"
-	"github.com/Anurag-Raut/smtp/server/io/writer"
-	"github.com/Anurag-Raut/smtp/server/parser"
-	"github.com/Anurag-Raut/smtp/server/state"
+	"github.com/Yubin-email/smtp-server/dto/command"
+	"github.com/Yubin-email/smtp-server/dto/reply"
+	"github.com/Yubin-email/smtp-server/io/reader"
+	"github.com/Yubin-email/smtp-server/io/writer"
+	"github.com/Yubin-email/smtp-server/parser"
+	"github.com/Yubin-email/smtp-server/state"
 )
 
 type Session struct {

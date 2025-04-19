@@ -1,7 +1,7 @@
 package reply
 
 import (
-	"github.com/Anurag-Raut/smtp/server/io/writer"
+	"github.com/Yubin-email/smtp-server/io/writer"
 	"strconv"
 )
 

@@ -8,6 +8,7 @@ import (
 	"github.com/Yubin-email/smtp-client/dto/reply"
 	"github.com/Yubin-email/smtp-client/io/reader"
 	"github.com/Yubin-email/smtp-client/io/writer"
+	"github.com/Yubin-email/smtp-client/logger"
 	"github.com/Yubin-email/smtp-client/parser"
 )
 
@@ -33,7 +34,7 @@ func (s *Session) SendEmail(from string, to []string, body *string) {
 	command.SendEHLO(s.writer)
 
 	reply.GetReply(parser.Ehlo, p)
-
+	logger.Println("GOT RESPLT")
 	command.SendMail(s.writer, "anurag@gmail.com")
 	reply.GetReply(parser.ReplyLine, p)
 

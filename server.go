@@ -53,7 +53,7 @@ func (c *clientServer) Listen() {
 	mux.HandleFunc("/newRequest", sendMail)
 	logger.ClientLogger.Println("Listenting on port ", c.Addr)
 	c.Handler = mux
-	go c.ListenAndServe()
+	c.ListenAndServe()
 
 }
 

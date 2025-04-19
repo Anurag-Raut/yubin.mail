@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Yubin-email/smtp-server/logger"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -21,11 +22,14 @@ func InitStore() error {
 }
 
 func StoreEmail(from string, to string, data string) error {
+
 	_, err := db.Exec(
 		context.Background(),
-		`INSERT INTO emails (sender, recipient, body) VALUES ($1, $2, $3)`,
-		from, to, data,
+		`INSERT INTO emails ("from", "to", data, mailbox)
+     VALUES ($1, $2, $3, $4)`,
+		from, to, data, "inbox",
 	)
+	logger.Println("INSERTED INTO THE STORE")
 	if err != nil {
 		return fmt.Errorf("insert error: %w", err)
 	}

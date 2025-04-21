@@ -29,20 +29,38 @@ func NewSession(conn net.Conn, w http.ResponseWriter) *Session {
 }
 
 func (s *Session) SendEmail(from string, to []string, body *string) {
+	logger.Println("Starting SendEmail")
+	logger.Println("From: ", from)
+	logger.Println("To:", to)
 
 	p := parser.NewReplyParser(s.reader)
+	logger.Println("Initialized reply parser")
+
 	command.SendEHLO(s.writer)
+	logger.Println("Sent EHLO command")
 
 	reply.GetReply(parser.Ehlo, p)
-	logger.Println("GOT RESPLT")
-	command.SendMail(s.writer, "anurag@gmail.com")
-	reply.GetReply(parser.ReplyLine, p)
+	logger.Println("Received EHLO reply")
 
-	command.SendRcpt(s.writer, "anurag@gmail.com")
+	command.SendMail(s.writer, from)
+	logger.Println("Sent MAIL FROM command")
+
 	reply.GetReply(parser.ReplyLine, p)
+	logger.Println("Received MAIL FROM reply")
+
+	command.SendRcpt(s.writer, to[0])
+	logger.Println("Sent RCPT TO command for", to[0])
+
+	reply.GetReply(parser.ReplyLine, p)
+	logger.Println("Received RCPT TO reply")
 
 	command.SendBody(s.writer, p, "anurag@gmail.com")
+	logger.Println("Sent message body")
+
 	reply.GetReply(parser.ReplyLine, p)
+	logger.Println("Received final response after message body")
+
+	logger.Println("SendEmail finished")
 }
 
 func (s *Session) Begin() error {

@@ -49,7 +49,7 @@ func (c *Client) getMxRecords(from string) ([]*net.MX, error) {
 }
 
 func (c *Client) SendEmail(from string, to []string, body *string) error {
-	mxRecords, err := c.getMxRecords(from)
+	mxRecords, err := c.getMxRecords(to[0])
 	if err != nil {
 		logger.Println(err)
 		return err

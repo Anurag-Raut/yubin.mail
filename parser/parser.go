@@ -55,27 +55,141 @@ func (p *ReplyParser) ParseGreeting() (identifier string, textStrings []string, 
 
 }
 
-func (p *ReplyParser) ParseEhloResponse() (replyCode int, domain string, textString []string, err error) {
+func (p *ReplyParser) ParseEhloResponse() (replyCode int, domain string, ehlo_lines []string, err error) {
 	_, err = p.expect(CODE)
 	if err != nil {
-		return replyCode, domain, textString, err
-	}
-	_, err = p.expect(SPACE)
-
-	if err != nil {
-		return replyCode, domain, textString, err
-	}
-	domain, err = p.parseDomain()
-
-	if err != nil {
-		return replyCode, domain, textString, err
+		return replyCode, domain, ehlo_lines, err
 	}
 
-	_, err = p.expect(CRLF)
+	_, err = p.expect(HYPHEN)
+	if err == nil {
+		// parse multi line reponse
+		domain, err := p.parseDomain()
+		if err != nil {
+			return replyCode, domain, ehlo_lines, err
+		}
+		_, err = p.expect(SPACE)
 
-	return replyCode, domain, textString, err
+		if err == nil {
+			_, greetErr := p.expect(EHLO_GREET) //TODO: ignoring greeting for now, later do something with it or return it in function
+			if greetErr != nil {
+
+				return replyCode, domain, ehlo_lines, err
+			}
+		}
+		_, err = p.expect(CRLF)
+		if err != nil {
+			return replyCode, domain, ehlo_lines, err
+		}
+
+		_, err = p.parseEhloMultiline(replyCode)
+		if err != nil {
+			return replyCode, domain, ehlo_lines, err
+		}
+
+		return replyCode, domain, ehlo_lines, nil
+
+	} else if (errors.As(err, &TokenNotFound{})) {
+
+		_, err = p.expect(SPACE)
+
+		if err == nil {
+			//parse single line
+			domain, err = p.parseDomain()
+
+			if err != nil {
+				return replyCode, domain, ehlo_lines, err
+			}
+
+			_, err = p.expect(SPACE)
+
+			if err == nil {
+				_, greetErr := p.expect(EHLO_GREET)
+				if greetErr != nil {
+
+					return replyCode, domain, ehlo_lines, err
+				}
+			}
+
+			_, err = p.expect(CRLF)
+			return replyCode, domain, ehlo_lines, err
+		} else {
+			return replyCode, domain, ehlo_lines, err
+		}
+
+	} else {
+		return replyCode, domain, ehlo_lines, err
+	}
+
+	return replyCode, domain, ehlo_lines, err
 }
 
+func (p *ReplyParser) parseEhloMultiline(replyCode int) (ehlo_lines []string, err error) {
+
+	for {
+		code, err := p.expect(CODE)
+		if err != nil {
+			return ehlo_lines, err
+		}
+		if code != strconv.Itoa(replyCode) {
+			return ehlo_lines, errors.New("EXPECTED REPLY CODE " + strconv.Itoa(replyCode))
+		}
+		_, err = p.expect(HYPHEN)
+		if err == nil {
+			_, err = p.parseEhloLine()
+			if err != nil {
+				return ehlo_lines, err
+			}
+			_, err = p.expect(CRLF)
+			if err != nil {
+				return ehlo_lines, err
+			}
+		} else if (errors.As(err, &TokenNotFound{})) {
+			//try  last line
+			_, err := p.expect(SPACE)
+			if err != nil {
+				return ehlo_lines, err
+			}
+			_, err = p.parseEhloLine()
+			if err != nil {
+				return ehlo_lines, err
+			}
+			_, err = p.expect(CRLF)
+			if err != nil {
+				return ehlo_lines, err
+			}
+
+			break
+		} else {
+			return ehlo_lines, err
+		}
+
+	}
+
+	return ehlo_lines, nil
+}
+
+func (p *ReplyParser) parseEhloLine() (ehlo_line string, err error) {
+	_, err = p.expect(EHLO_KEYWORD)
+	if err != nil {
+		return ehlo_line, err
+	}
+	for {
+		_, err := p.expect(SPACE)
+		if err == nil {
+			_, err := p.expect(EHLO_PARAM)
+			if err != nil {
+				return ehlo_line, err
+			}
+
+		} else if (errors.As(err, &TokenNotFound{})) {
+			break
+		} else {
+			return ehlo_line, err
+		}
+	}
+	return ehlo_line, nil
+}
 func (p *ReplyParser) ParseReplyLine() (replyCode int, textStrings []string, err error) {
 
 	for {
@@ -223,7 +337,7 @@ func (p *ReplyParser) parseMultiLineTextString() (identifier string, textStrings
 }
 func (p *ReplyParser) parserTextString() (string, error) {
 
-	textString, err := p.expect(TEXTSTRING)
+	textString, err := p.expect(TEXT_STRING)
 
 	return textString, err
 }
@@ -382,7 +496,7 @@ func (p *ReplyParser) expect(token TokenType) (string, error) {
 
 		}
 
-	case TEXTSTRING:
+	case TEXT_STRING:
 		{
 			var result []byte
 			for {
@@ -413,6 +527,76 @@ func (p *ReplyParser) expect(token TokenType) (string, error) {
 			logger.Println("Final textstring:", string(result))
 			return string(result), nil
 		}
+	case EHLO_GREET:
+		{
+			var result []byte
+			for {
+				bytes, err := p.reader.Peek(1)
+				if err != nil {
+					return "", err
+				}
+
+				logger.Println("Peeking byte:", bytes[0])
+
+				if len(bytes) == 0 || !((bytes[0] >= 0 && bytes[0] <= 9) || (bytes[0] >= 11 && bytes[0] <= 12) || (bytes[0] >= 14 && bytes[0] <= 127)) {
+					logger.Println("Encountered invalid byte or end of input. Breaking the loop.")
+					break
+				}
+
+				logger.Println("Reading byte:", bytes[0])
+
+				_, err = p.reader.ReadByte()
+				if err != nil {
+					return "", err
+				}
+
+				result = append(result, bytes[0])
+
+				logger.Println("Current result:", string(result))
+			}
+
+			logger.Println("Final EHLO GREET:", string(result))
+			return string(result), nil
+		}
+
+	case EHLO_KEYWORD:
+		{
+			ch, err := p.expectMultiple(ALPHA, DIGIT)
+			if err != nil {
+				return "", err
+			}
+			keyword := ch
+			for {
+				ch, err = p.expectMultiple(ALPHA, DIGIT, HYPHEN)
+				if err != nil {
+					if (errors.As(err, &TokenNotFound{})) {
+						break
+					} else {
+						return keyword, err
+					}
+				}
+				keyword += ch
+			}
+			return keyword, nil
+		}
+
+	case EHLO_PARAM:
+		{
+			var ehlo_param string
+			for {
+				bytes, err := p.reader.Peek(1)
+				if err != nil {
+					return "", err
+				}
+				if len(bytes) == 0 || !(bytes[0] >= 33 && bytes[0] <= 126) {
+					logger.Println("Encountered invalid byte or end of input. Breaking the loop.")
+					break
+				}
+				ehlo_param += string(bytes)
+			}
+			return ehlo_param, nil
+		}
+
 	case CODE:
 		{
 

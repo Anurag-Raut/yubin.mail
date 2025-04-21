@@ -125,47 +125,74 @@ func (p *ReplyParser) ParseEhloResponse() (replyCode int, domain string, ehlo_li
 }
 
 func (p *ReplyParser) parseEhloMultiline(replyCode int) (ehlo_lines []string, err error) {
+	logger.Println("Starting parseEhloMultiline with replyCode:", replyCode)
 
 	for {
+		logger.Println("Expecting CODE...")
 		code, err := p.expect(CODE)
 		if err != nil {
+			logger.Println("Error while expecting CODE:", err)
 			return ehlo_lines, err
 		}
+		logger.Println("Got CODE:", code)
+
 		if code != strconv.Itoa(replyCode) {
+			logger.Println("Unexpected CODE. Expected:", strconv.Itoa(replyCode), "Got:", code)
 			return ehlo_lines, errors.New("EXPECTED REPLY CODE " + strconv.Itoa(replyCode))
 		}
+
+		logger.Println("Expecting HYPHEN...")
 		_, err = p.expect(HYPHEN)
 		if err == nil {
-			_, err = p.parseEhloLine()
+			logger.Println("HYPHEN found. Parsing EHLO line...")
+
+			line, err := p.parseEhloLine()
 			if err != nil {
+				logger.Println("Error while parsing EHLO line:", err)
 				return ehlo_lines, err
 			}
+			logger.Println("Parsed EHLO line:", line)
+			ehlo_lines = append(ehlo_lines, line)
+
+			logger.Println("Expecting CRLF after EHLO line...")
 			_, err = p.expect(CRLF)
 			if err != nil {
+				logger.Println("Error while expecting CRLF:", err)
 				return ehlo_lines, err
 			}
-		} else if (errors.As(err, &TokenNotFound{})) {
-			//try  last line
+
+		} else if errors.As(err, &TokenNotFound{}) {
+			logger.Println("HYPHEN not found, trying to parse last EHLO line")
+
 			_, err := p.expect(SPACE)
 			if err != nil {
+				logger.Println("Error while expecting SPACE:", err)
 				return ehlo_lines, err
 			}
-			_, err = p.parseEhloLine()
+
+			line, err := p.parseEhloLine()
 			if err != nil {
+				logger.Println("Error while parsing last EHLO line:", err)
 				return ehlo_lines, err
 			}
+			logger.Println("Parsed last EHLO line:", line)
+			ehlo_lines = append(ehlo_lines, line)
+
+			logger.Println("Expecting CRLF after last EHLO line...")
 			_, err = p.expect(CRLF)
 			if err != nil {
+				logger.Println("Error while expecting CRLF after last EHLO line:", err)
 				return ehlo_lines, err
 			}
 
 			break
 		} else {
+			logger.Println("Unexpected error while expecting HYPHEN or SPACE:", err)
 			return ehlo_lines, err
 		}
-
 	}
 
+	logger.Println("Finished parsing EHLO lines:", ehlo_lines)
 	return ehlo_lines, nil
 }
 

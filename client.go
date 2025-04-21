@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"slices"
 
-	"github.com/Anurag-Raut/smtp/logger"
+	"github.com/Yubin-email/smtp-client/logger"
 	"github.com/Yubin-email/smtp-client/parser"
 	"github.com/Yubin-email/smtp-client/session"
 )
@@ -51,13 +51,15 @@ func (c *Client) getMxRecords(from string) ([]*net.MX, error) {
 func (c *Client) SendEmail(from string, to []string, body *string) error {
 	mxRecords, err := c.getMxRecords(from)
 	if err != nil {
-		logger.ClientLogger.Println(err)
+		logger.Println(err)
 		return err
 	}
 
 	for _, mxRecord := range mxRecords {
-		conn, err := net.Dial("tcp", mxRecord.Host+":8000")
+		logger.Println("MX RECORD:", mxRecord.Host)
+		conn, err := net.Dial("tcp4", mxRecord.Host+":25")
 		if err != nil {
+			logger.Println(err)
 			return err
 		}
 
@@ -70,7 +72,7 @@ func (c *Client) SendEmail(from string, to []string, body *string) error {
 			session.SendEmail(from, to, body)
 			return nil
 		} else {
-			logger.ClientLogger.Println("err:", err.Error())
+			logger.Println("err:", err.Error())
 		}
 
 	}

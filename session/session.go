@@ -4,7 +4,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"time"
 
 	"github.com/Yubin-email/smtp-client/dto/command"
 	"github.com/Yubin-email/smtp-client/dto/reply"
@@ -51,7 +50,7 @@ func (s *Session) SendEmail(from string, to []string, body *string) {
 	logger.Println("Received MAIL FROM reply")
 
 	command.SendRcpt(s.writer, to[0])
-	logger.Println("Sent RCPT TO command for %s", to[0])
+	logger.Println("Sent RCPT TO command for ", to[0])
 
 	reply.GetReply(parser.ReplyLine, p)
 	logger.Println("Received RCPT TO reply")
@@ -68,7 +67,6 @@ func (s *Session) SendEmail(from string, to []string, body *string) {
 func (s *Session) Begin() error {
 	p := parser.NewReplyParser(s.reader)
 
-	s.readAvailableRaw()
 	_, err := reply.GetReply(parser.Greeting, p)
 	if err != nil {
 		return err

@@ -224,7 +224,7 @@ func (p *ReplyParser) parserTextString() (string, error) {
 
 	var textString string
 	for {
-		ch, err := p.expectMultiple(ALPHA, SPACE, HT)
+		ch, err := p.expectMultiple(TEXTSTRING)
 		if err == nil {
 			textString += ch
 		} else if (errors.Is(err, TokenNotFound{})) {
@@ -389,6 +389,26 @@ func (p *ReplyParser) expect(token TokenType) (string, error) {
 			}
 			return string(bytes), nil
 
+		}
+
+	case TEXTSTRING:
+		{
+			var result []byte
+			for {
+				bytes, err := p.reader.Peek(1)
+				if err != nil {
+					return "", err
+				}
+				if len(bytes) == 0 || !(bytes[0] == '\t' || (bytes[0] >= 32 && bytes[0] <= 126)) {
+					break
+				}
+				_, err = p.reader.ReadByte()
+				if err != nil {
+					return "", err
+				}
+				result = append(result, bytes[0])
+			}
+			return string(result), nil
 		}
 	case CODE:
 		{

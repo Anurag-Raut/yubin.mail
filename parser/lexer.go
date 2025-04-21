@@ -17,6 +17,7 @@ const (
 	RIGHT_SQUARE_BRAC
 	HT
 	HYPHEN
+	TEXTSTRING
 )
 
 type ReplyToken int
@@ -24,7 +25,7 @@ type ReplyToken int
 const (
 	ReplyLine ReplyToken = iota
 	Greeting
-  Ehlo
+	Ehlo
 )
 
 type TokenNotFound struct {

@@ -56,11 +56,15 @@ func (p *ReplyParser) ParseGreeting() (identifier string, textStrings []string, 
 }
 
 func (p *ReplyParser) ParseEhloResponse() (replyCode int, domain string, ehlo_lines []string, err error) {
-	_, err = p.expect(CODE)
+	replyCodeString, err := p.expect(CODE)
 	if err != nil {
 		return replyCode, domain, ehlo_lines, err
 	}
 
+	replyCode, err = strconv.Atoi(replyCodeString)
+	if err != nil {
+		return replyCode, domain, ehlo_lines, err
+	}
 	_, err = p.expect(HYPHEN)
 	if err == nil {
 		// parse multi line reponse

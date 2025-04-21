@@ -37,30 +37,70 @@ func (s *Session) SendEmail(from string, to []string, body *string) {
 	p := parser.NewReplyParser(s.reader)
 	logger.Println("Initialized reply parser")
 
-	command.SendEHLO(s.writer)
+	err := command.SendEHLO(s.writer)
+	if err != nil {
+		logger.Println("Error sending EHLO command:", err)
+		return
+	}
 	logger.Println("Sent EHLO command")
 
-	reply.GetReply(parser.Ehlo, p)
+	_, err = reply.GetReply(parser.Ehlo, p)
+	if err != nil {
+		logger.Println("Error receiving EHLO reply:", err)
+		return
+	}
 	logger.Println("Received EHLO reply")
 
-	command.SendMail(s.writer, from)
+	err = command.SendMail(s.writer, from)
+	if err != nil {
+		logger.Println("Error sending MAIL FROM command:", err)
+		return
+	}
 	logger.Println("Sent MAIL FROM command")
 
-	reply.GetReply(parser.ReplyLine, p)
+	_, err = reply.GetReply(parser.ReplyLine, p)
+	if err != nil {
+		logger.Println("Error receiving MAIL FROM reply:", err)
+		return
+	}
 	logger.Println("Received MAIL FROM reply")
 
-	command.SendRcpt(s.writer, to[0])
+	err = command.SendRcpt(s.writer, to[0])
+	if err != nil {
+		logger.Println("Error sending RCPT TO command for ", to[0], ":", err)
+		return
+	}
 	logger.Println("Sent RCPT TO command for ", to[0])
 
-	reply.GetReply(parser.ReplyLine, p)
+	_, err = reply.GetReply(parser.ReplyLine, p)
+	if err != nil {
+		logger.Println("Error receiving RCPT TO reply:", err)
+		return
+	}
 	logger.Println("Received RCPT TO reply")
 
-	command.SendBody(s.writer, p, "anurag@gmail.com")
+	err = command.SendBody(s.writer, p, "anurag@gmail.com")
+	if err != nil {
+		logger.Println("Error sending message body:", err)
+		return
+	}
 	logger.Println("Sent message body")
 
-	reply.GetReply(parser.ReplyLine, p)
+	_, err = reply.GetReply(parser.ReplyLine, p)
+	if err != nil {
+		logger.Println("Error receiving final response after message body:", err)
+		return
+	}
 	logger.Println("Received final response after message body")
 
+	err = command.SendQuit(s.writer)
+	if err != nil {
+		logger.Println("Error sending QUIT command:", err)
+		return
+	}
+	logger.Println("Sent QUIT command")
+
+	_, err = reply.GetReply(parser.ReplyLine, p)
 	logger.Println("SendEmail finished")
 }
 

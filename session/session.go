@@ -43,7 +43,7 @@ func (s *Session) SendEmail(from string, to []string, body *string) {
 		return
 	}
 	logger.Println("Sent EHLO command")
-
+	s.readAvailableRaw()
 	_, err = reply.GetReply(parser.Ehlo, p)
 	if err != nil {
 		logger.Println("Error receiving EHLO reply:", err)

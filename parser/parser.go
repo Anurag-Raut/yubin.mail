@@ -7,6 +7,7 @@ import (
 	"unicode"
 
 	"github.com/Yubin-email/smtp-client/io/reader"
+	"github.com/Yubin-email/smtp-client/logger"
 )
 
 func GetDomainFromEmail(email string) (domain string, err error) {
@@ -224,7 +225,7 @@ func (p *ReplyParser) parserTextString() (string, error) {
 
 	var textString string
 	for {
-		ch, err := p.expectMultiple(TEXTSTRING)
+		ch, err := p.expect(TEXTSTRING)
 		if err == nil {
 			textString += ch
 		} else if (errors.Is(err, TokenNotFound{})) {
@@ -399,15 +400,27 @@ func (p *ReplyParser) expect(token TokenType) (string, error) {
 				if err != nil {
 					return "", err
 				}
+
+				logger.Println("Peeking byte:", bytes[0])
+
 				if len(bytes) == 0 || !(bytes[0] == '\t' || (bytes[0] >= 32 && bytes[0] <= 126)) {
+					logger.Println("Encountered invalid byte or end of input. Breaking the loop.")
 					break
 				}
+
+				logger.Println("Reading byte:", bytes[0])
+
 				_, err = p.reader.ReadByte()
 				if err != nil {
 					return "", err
 				}
+
 				result = append(result, bytes[0])
+
+				logger.Println("Current result:", string(result))
 			}
+
+			logger.Println("Final textstring:", string(result))
 			return string(result), nil
 		}
 	case CODE:

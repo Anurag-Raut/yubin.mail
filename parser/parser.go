@@ -223,19 +223,9 @@ func (p *ReplyParser) parseMultiLineTextString() (identifier string, textStrings
 }
 func (p *ReplyParser) parserTextString() (string, error) {
 
-	var textString string
-	for {
-		ch, err := p.expect(TEXTSTRING)
-		if err == nil {
-			textString += ch
-		} else if (errors.Is(err, TokenNotFound{})) {
-			break
-		} else {
-			return textString, err
-		}
-	}
+	textString, err := p.expect(TEXTSTRING)
 
-	return textString, nil
+	return textString, err
 }
 
 func (p *ReplyParser) parseDomain() (string, error) {

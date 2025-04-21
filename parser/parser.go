@@ -567,8 +567,6 @@ func (p *ReplyParser) expect(token TokenType) (string, error) {
 					return "", err
 				}
 
-				logger.Println("Peeking byte:", bytes[0])
-
 				if len(bytes) == 0 || !((bytes[0] >= 0 && bytes[0] <= 9) || (bytes[0] >= 11 && bytes[0] <= 12) || (bytes[0] >= 14 && bytes[0] <= 127)) {
 					logger.Println("Encountered invalid byte or end of input. Breaking the loop.")
 					break
@@ -583,24 +581,24 @@ func (p *ReplyParser) expect(token TokenType) (string, error) {
 
 				result = append(result, bytes[0])
 
-				logger.Println("Current result:", string(result))
 			}
 
-			logger.Println("Final EHLO GREET:", string(result))
 			return string(result), nil
 		}
 
 	case EHLO_KEYWORD:
 		{
+
 			ch, err := p.expectMultiple(ALPHA, DIGIT)
 			if err != nil {
 				return "", err
 			}
 			keyword := ch
+
 			for {
 				ch, err = p.expectMultiple(ALPHA, DIGIT, HYPHEN)
 				if err != nil {
-					if (errors.As(err, &TokenNotFound{})) {
+					if errors.As(err, &TokenNotFound{}) {
 						break
 					} else {
 						return keyword, err
@@ -624,6 +622,11 @@ func (p *ReplyParser) expect(token TokenType) (string, error) {
 					break
 				}
 				ehlo_param += string(bytes)
+				_, err = p.reader.ReadByte()
+				if err != nil {
+					logger.Println("Error reading byte:", err)
+					return "", err
+				}
 			}
 			return ehlo_param, nil
 		}

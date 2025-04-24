@@ -7,6 +7,7 @@ import (
 	"github.com/Yubin-email/smtp-client/dto/reply"
 	"github.com/Yubin-email/smtp-client/io/writer"
 	"github.com/Yubin-email/smtp-client/parser"
+	"github.com/google/uuid"
 )
 
 func SendEHLO(w *writer.Writer) error {
@@ -35,7 +36,7 @@ func SendBody(w *writer.Writer, p *parser.ReplyParser, body string) error {
 	if err != nil {
 		return err
 	}
-
+	_, err = w.WriteString(fmt.Sprintf("Message-ID: <%s@%s>\r\n", uuid.New().String(), config.ClientDomain))
 	_, err = w.WriteString(fmt.Sprintf("%s\r\n", body))
 
 	if err != nil {

@@ -1,2 +1,4 @@
 github.com/Anurag-Raut/smtp v0.0.0-20250419081750-10750d75d55a h1:rP8yo5A62VqJw18D1vg64RQZxMsgCmcg6liW3p4UAwo=
 github.com/Anurag-Raut/smtp v0.0.0-20250419081750-10750d75d55a/go.mod h1:nRlooZSG8IYYAgPVH12Ezth/EwGnie128vGK3edsvJ8=
+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=

@@ -1,7 +1,6 @@
 package config
 
-import (
+import ()
 
-)
-//TODO: .env loading issue solve
-var ClientDomain = "gmail.comn"
+// TODO: .env loading issue solve
+var ClientDomain = "yubin.email"

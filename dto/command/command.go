@@ -44,12 +44,12 @@ func SendBody(w *writer.Writer, p *parser.ReplyParser, body string, from string,
 	logger.Println("Message-ID:", msgID)
 
 	// Send headers: From, To, Subject, and Message-ID
-	_, err = w.WriteString(fmt.Sprintf("From: sender@example.com\r\n"))
+	_, err = w.WriteString(fmt.Sprintf("From: %s\r\n", from))
 	if err != nil {
 		return err
 	}
 
-	_, err = w.WriteString(fmt.Sprintf("To: recipient@example.com\r\n"))
+	_, err = w.WriteString(fmt.Sprintf("To: %s\r\n", to))
 	if err != nil {
 		return err
 	}

@@ -36,7 +36,10 @@ func SendBody(w *writer.Writer, p *parser.ReplyParser, body string) error {
 	if err != nil {
 		return err
 	}
-	_, err = w.WriteString(fmt.Sprintf("Message-ID:<%s@%s>\r\n", uuid.New().String(), config.ClientDomain))
+	msgID := fmt.Sprintf("<%s@%s>", uuid.New().String(), config.ClientDomain)
+	fmt.Println("Message-ID:", msgID)
+
+	_, err = w.WriteString(fmt.Sprintf("Message-ID:%s\r\n", msgID))
 	_, err = w.WriteString(fmt.Sprintf("%s\r\n", body))
 
 	if err != nil {

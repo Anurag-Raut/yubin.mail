@@ -6,6 +6,7 @@ import (
 	"github.com/Yubin-email/smtp-client/config"
 	"github.com/Yubin-email/smtp-client/dto/reply"
 	"github.com/Yubin-email/smtp-client/io/writer"
+	"github.com/Yubin-email/smtp-client/logger"
 	"github.com/Yubin-email/smtp-client/parser"
 	"github.com/google/uuid"
 )
@@ -37,9 +38,10 @@ func SendBody(w *writer.Writer, p *parser.ReplyParser, body string) error {
 		return err
 	}
 	msgID := fmt.Sprintf("<%s@%s>", uuid.New().String(), config.ClientDomain)
-	fmt.Println("Message-ID:", msgID)
+	logger.Println("Message-ID:", msgID)
 
 	_, err = w.WriteString(fmt.Sprintf("Message-ID:%s\r\n", msgID))
+	logger.Println("BODY", body)
 	_, err = w.WriteString(fmt.Sprintf("%s\r\n", body))
 
 	if err != nil {

@@ -26,7 +26,7 @@ func SendRcpt(w *writer.Writer, forwardPath string) error {
 	return err
 }
 
-func SendBody(w *writer.Writer, p *parser.ReplyParser, body string) error {
+func SendBody(w *writer.Writer, p *parser.ReplyParser, body string, from string, to string) error {
 	// Send DATA command to the server
 	_, err := w.WriteString(fmt.Sprintf("DATA\r\n"))
 	if err != nil {

@@ -55,7 +55,7 @@ func (s *Session) SendEmail(from string, to []string, body *string) {
 	reply.GetReply(parser.ReplyLine, p)
 	logger.Println("Received RCPT TO reply")
 
-	command.SendBody(s.writer, p, *body)
+	command.SendBody(s.writer, p, *body, from, to[0])
 	logger.Println("Sent message body")
 
 	reply.GetReply(parser.ReplyLine, p)

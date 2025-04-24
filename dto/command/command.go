@@ -27,32 +27,56 @@ func SendRcpt(w *writer.Writer, forwardPath string) error {
 }
 
 func SendBody(w *writer.Writer, p *parser.ReplyParser, body string) error {
-
+	// Send DATA command to the server
 	_, err := w.WriteString(fmt.Sprintf("DATA\r\n"))
 	if err != nil {
 		return err
 	}
 
+	// Await server reply after sending DATA command
 	_, err = reply.GetReply(parser.ReplyLine, p)
 	if err != nil {
 		return err
 	}
+
+	// Generate a unique Message-ID
 	msgID := fmt.Sprintf("<%s@%s>", uuid.New().String(), config.ClientDomain)
 	logger.Println("Message-ID:", msgID)
 
-	_, err = w.WriteString(fmt.Sprintf("Message-ID:%s\r\n", msgID))
+	// Send headers: From, To, Subject, and Message-ID
+	_, err = w.WriteString(fmt.Sprintf("From: sender@example.com\r\n"))
+	if err != nil {
+		return err
+	}
+
+	_, err = w.WriteString(fmt.Sprintf("To: recipient@example.com\r\n"))
+	if err != nil {
+		return err
+	}
+
+	_, err = w.WriteString(fmt.Sprintf("Subject: Test Subject\r\n"))
+	if err != nil {
+		return err
+	}
+
+	_, err = w.WriteString(fmt.Sprintf("Message-ID: %s\r\n", msgID))
+	if err != nil {
+		return err
+	}
+
+	// Send the body of the email
 	logger.Println("BODY", body)
 	_, err = w.WriteString(fmt.Sprintf("%s\r\n", body))
-
 	if err != nil {
 		return err
 	}
 
+	// End the message with a single dot on a line by itself
 	_, err = w.WriteString(fmt.Sprintf(".\r\n"))
-
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

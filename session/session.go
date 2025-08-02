@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/Yubin-email/smtp-client/dto/auth"
 	"github.com/Yubin-email/smtp-client/dto/command"
 	"github.com/Yubin-email/smtp-client/dto/reply"
 	"github.com/Yubin-email/smtp-client/io/reader"
@@ -40,9 +41,19 @@ func (s *Session) SendEmail(from string, to []string, body *string) {
 	command.SendEHLO(s.writer)
 	logger.Println("Sent EHLO command")
 
-	reply.GetReply(parser.Ehlo, p)
+	ehloReplyInterface, err := reply.GetReply(parser.Ehlo, p)
 	logger.Println("Received EHLO reply")
-
+	if err != nil {
+		panic(err)
+	}
+	ehloReply, ok := ehloReplyInterface.(*reply.EhloReply)
+	if !ok {
+		panic("cannot convert to ehlo from ehlo reply")
+	}
+	present, val := ehloReply.GetKey("AUTH")
+	if present {
+		auth.HandleAuth(val, s.writer, p)
+	}
 	command.SendMail(s.writer, from)
 	logger.Println("Sent MAIL FROM command")
 

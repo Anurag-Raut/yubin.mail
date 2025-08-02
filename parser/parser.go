@@ -130,7 +130,6 @@ func (p *ReplyParser) ParseEhloResponse() (replyCode int, domain string, ehlo_li
 
 func (p *ReplyParser) parseEhloMultiline(replyCode int) (ehlo_lines []string, err error) {
 	logger.Println("Starting parseEhloMultiline with replyCode:", replyCode)
-
 	for {
 		logger.Println("Expecting CODE...")
 		code, err := p.expect(CODE)

@@ -3,6 +3,7 @@ package reply
 import (
 	"errors"
 	"strconv"
+	"strings"
 
 	"github.com/Yubin-email/smtp-client/parser"
 )
@@ -27,6 +28,19 @@ type GreetingReply struct {
 type EhloReply struct {
 	domain string
 	Reply
+}
+
+func (r *EhloReply) GetKey(key string) (isPresnet bool, val string) {
+	for _, line := range r.textStrings {
+		parts := strings.SplitN(line, " ", 2)
+		keyInLine := parts[0]
+		valueInLine := parts[1]
+		if keyInLine == key {
+			return true, valueInLine
+		}
+	}
+
+	return false, ""
 }
 
 func (r *GreetingReply) ParseReply() error {
@@ -79,7 +93,6 @@ func GetReply(token parser.ReplyToken, p *parser.ReplyParser) (reply ReplyInterf
 		reply = &Reply{
 			parser: p,
 		}
-		break
 	case parser.Greeting:
 		reply = &GreetingReply{
 			Reply: Reply{parser: p},

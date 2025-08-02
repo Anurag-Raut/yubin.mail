@@ -4,4 +4,4 @@ go 1.22.1
 
 require github.com/Anurag-Raut/smtp v0.0.0-20250419081750-10750d75d55a
 
-require github.com/google/uuid v1.6.0 // indirect
+require github.com/google/uuid v1.6.0

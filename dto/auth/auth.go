@@ -12,8 +12,10 @@ import (
 	"github.com/Yubin-email/smtp-client/parser"
 )
 
+const email = ""
 const username = "your_username"
 const password = "your_password"
+const accessToken = ""
 
 func HandleAuth(mechanismsString string, enhancedStatusCode bool, w *writer.Writer, p *parser.ReplyParser) error {
 	mechanisms := strings.Split(mechanismsString, " ")
@@ -51,6 +53,18 @@ func HandleAuth(mechanismsString string, enhancedStatusCode bool, w *writer.Writ
 
 				fmt.Fprintf(w, "%s\r\n", responseB64)
 				_, err = p.ParseAuthReply(enhancedStatusCode)
+				if err != nil {
+					return err
+				}
+				return nil
+			}
+		case "XOAUTH2":
+			{
+				xoauthStr := fmt.Sprintf("user=%s\x01auth=Bearer %s\x01\x01", username, accessToken)
+				xoauthEncoded := base64.StdEncoding.EncodeToString([]byte(xoauthStr))
+
+				fmt.Fprintf(w, "AUTH XOAUTH2 %s\r\n", xoauthEncoded)
+				_, err := p.ParseAuthReply(enhancedStatusCode)
 				if err != nil {
 					return err
 				}

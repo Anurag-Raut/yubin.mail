@@ -69,7 +69,7 @@ func (c *Client) SendEmail(from string, to []string, body *string) error {
 
 		if err == nil {
 
-			session.SendEmail(from, to, body)
+			session.SendEmail(from, to, body, false)
 			return nil
 		} else {
 			logger.Println("err:", err.Error())

@@ -1,6 +1,7 @@
 package session
 
 import (
+	"crypto/tls"
 	"io"
 	"net"
 	"net/http"
@@ -29,8 +30,24 @@ func NewSession(conn net.Conn, w http.ResponseWriter) *Session {
 		smtpConn:   conn,
 	}
 }
+func (s *Session) startTLS() error {
 
-func (s *Session) SendEmail(from string, to []string, body *string) {
+	tlsConfig := &tls.Config{
+		ServerName: "smtp.example.com", // must match cert CN or SAN
+	}
+	tlsConn := tls.Client(s.smtpConn, tlsConfig)
+	err := tlsConn.Handshake()
+	if err != nil {
+		return err
+	}
+	s.smtpConn = tlsConn
+	s.reader = reader.NewReader(tlsConn)
+	s.writer = writer.NewWriter(tlsConn)
+
+	return nil
+}
+
+func (s *Session) SendEmail(from string, to []string, body *string, alreadyUpgraded bool) {
 	logger.Println("Starting SendEmail")
 	logger.Println("From: ", from)
 	logger.Println("To:", to)
@@ -50,9 +67,25 @@ func (s *Session) SendEmail(from string, to []string, body *string) {
 	if !ok {
 		panic("cannot convert to ehlo from ehlo reply")
 	}
-	present, val := ehloReply.GetKey("AUTH")
-	if present {
-		auth.HandleAuth(val, s.writer, p)
+	startTlsPresent, _ := ehloReply.GetKey("STARTTLS")
+	if startTlsPresent && !alreadyUpgraded {
+		err := auth.HandleTLS(s.writer, p)
+		if err != nil {
+			panic(err)
+		}
+		err = s.startTLS()
+		if err != nil {
+			panic(err)
+		}
+
+		s.SendEmail(from, to, body, true)
+		return
+
+	}
+	authPresent, val := ehloReply.GetKey("AUTH")
+	if authPresent {
+		isEnhancedStatusCodePrecent, _ := ehloReply.GetKey("ENHANCEDSTATUSCODE")
+		auth.HandleAuth(val, isEnhancedStatusCodePrecent, s.writer, p)
 	}
 	command.SendMail(s.writer, from)
 	logger.Println("Sent MAIL FROM command")

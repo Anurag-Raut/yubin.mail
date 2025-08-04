@@ -71,3 +71,30 @@ func (p *ReplyParser) ParseAuthReply(enhancedStatusCode bool) (*AuthReply, error
 	return authReplyObj, nil
 
 }
+
+type StartTlsReply struct {
+	code    int
+	message string
+}
+
+func (p *ReplyParser) ParseStartTLSReply() (*StartTlsReply, error) {
+	tlsReply := &StartTlsReply{}
+	codeString, err := p.expect(CODE)
+	if err != nil {
+		return tlsReply, err
+	}
+	tlsReply.code, err = strconv.Atoi(codeString)
+	if err != nil {
+		return tlsReply, err
+	}
+	_, err = p.expect(SPACE)
+	if err != nil {
+		return tlsReply, err
+	}
+	msg, err := p.expect(TEXT_STRING)
+	if err != nil {
+		return tlsReply, err
+	}
+	tlsReply.message = msg
+	return tlsReply, nil
+}

@@ -65,3 +65,11 @@ func HandleAuth(mechanismsString string, enhancedStatusCode bool, w *writer.Writ
 
 	return errors.New("Auth Mechanism handler Not found")
 }
+
+func HandleTLS(w *writer.Writer, p *parser.ReplyParser) error {
+	fmt.Fprint(w, "STARTTLS")
+	_, err := p.ParseStartTLSReply()
+	// tlsReply := &tlsReplyObj.(parser.StartTlsReply)
+
+	return err
+}

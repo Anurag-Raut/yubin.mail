@@ -71,6 +71,7 @@ func (r *EhloReply) format() string {
 	replyString += CLRF
 	return (replyString)
 }
+
 func Greet(w *writer.Writer) error {
 	text := []string{"Anurag Server"}
 	rp := GreetingReply{

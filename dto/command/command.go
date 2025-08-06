@@ -1,6 +1,7 @@
 package command
 
 import (
+	"github.com/Yubin-email/smtp-server/dto/auth"
 	"github.com/Yubin-email/smtp-server/dto/reply"
 	. "github.com/Yubin-email/smtp-server/parser"
 	"github.com/Yubin-email/smtp-server/state"
@@ -267,7 +268,21 @@ func (cmd *QUIT_CMD) ProcessCommand(mailState *state.MailState, replyChannel cha
 	}
 	mailState.ClearAll()
 	replyChannel <- reply.NewReply(221, "221 OK")
-	return
+}
+
+type AUTH_CMD struct {
+	Command
+	mechanism       string
+	initialResponse *string
+}
+
+func (cmd *AUTH_CMD) ParseCommand() (err error) {
+	cmd.mechanism, cmd.initialResponse, err = cmd.parser.ParseAuth()
+	return err
+}
+func (cmd *AUTH_CMD) ProcessCommand(mailState *state.MailState, replyChannel chan reply.ReplyInterface) {
+	defer close(replyChannel)
+	cmd.mechanism.ProcessCommand(cmd.parser, replyChannel)
 }
 
 func GetCommand(parser *Parser) (CommandInterface, error) {

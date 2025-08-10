@@ -36,3 +36,15 @@ func (p *Parser) ParseAuth() (mechanism string, initialResponse *string, err err
 	}
 	return mechanism, initialResponse, nil
 }
+
+func (p *Parser) ParseAuthResponse() (response string, err error) {
+	response, err = p.Expect(ATEXT)
+	if err != nil {
+		return "", err
+	}
+	_, err = p.Expect(CRLF)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
+}

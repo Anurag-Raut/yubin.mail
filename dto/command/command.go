@@ -282,7 +282,20 @@ func (cmd *AUTH_CMD) ParseCommand() (err error) {
 }
 func (cmd *AUTH_CMD) ProcessCommand(mailState *state.MailState, replyChannel chan reply.ReplyInterface) {
 	defer close(replyChannel)
-	cmd.mechanism.ProcessCommand(cmd.parser, replyChannel)
+	mechObj, err := auth.HandleMechanism(cmd.mechanism, cmd.initialResponse)
+	if err != nil {
+		//TODO: check error code
+		replyChannel <- reply.NewReply(503)
+		return
+	}
+
+	err = mechObj.ProcessCommand(cmd.parser, replyChannel)
+
+	if err != nil {
+		//TODO: check error code
+		replyChannel <- reply.NewReply(503)
+		return
+	}
 }
 
 func GetCommand(parser *Parser) (CommandInterface, error) {

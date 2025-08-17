@@ -1,6 +1,8 @@
 package command
 
 import (
+	"net"
+
 	"github.com/Yubin-email/smtp-server/dto/auth"
 	"github.com/Yubin-email/smtp-server/dto/reply"
 	. "github.com/Yubin-email/smtp-server/parser"
@@ -10,12 +12,31 @@ import (
 type CommandInterface interface {
 	GetCommandType() CommandToken
 	ParseCommand() error
-	ProcessCommand(mailState *state.MailState, replyChannel chan reply.ReplyInterface)
+	ProcessCommand(ctx *CommandContext, replyChannel chan reply.ReplyInterface)
 }
 
 type Command struct {
 	commandToken CommandToken
 	parser       *Parser
+}
+
+type CommandContext struct {
+	mailState *state.MailState
+	EventChan chan CommandEvent
+	isTLS     bool
+}
+
+type CommandEvent struct {
+	Name string
+	Data any
+}
+
+func NewCommandContext(mailState *state.MailState, conn net.Conn, isTls bool) *CommandContext {
+	return &CommandContext{
+		mailState: mailState,
+		isTLS:     isTls,
+		EventChan: make(chan CommandEvent),
+	}
 }
 
 func (cmd *Command) GetCommandType() CommandToken {
@@ -51,18 +72,18 @@ func NewCommand(commandString string, parser *Parser) CommandInterface {
 		return &NOOP_CMD{
 			Command: Command{commandToken: NOOP, parser: parser},
 		}
-	case "VRFY":
-		return &VRFY_CMD{
-			Command: Command{commandToken: VRFY, parser: parser},
-		}
-	case "EXPN":
-		return &EXPN_CMD{
-			Command: Command{commandToken: EXPN, parser: parser},
-		}
-	case "HELP":
-		return &HELP_CMD{
-			Command: Command{commandToken: HELP, parser: parser},
-		}
+	// case "VRFY":
+	// 	return &VRFY_CMD{
+	// 		Command: Command{commandToken: VRFY, parser: parser},
+	// 	}
+	// case "EXPN":
+	// 	return &EXPN_CMD{
+	// 		Command: Command{commandToken: EXPN, parser: parser},
+	// 	}
+	// case "HELP":
+	// 	return &HELP_CMD{
+	// 		Command: Command{commandToken: HELP, parser: parser},
+	// 	}
 	case "RSET":
 		return &RESET_CMD{
 			Command: Command{commandToken: RSET, parser: parser},
@@ -88,17 +109,21 @@ func (cmd *EHLO_CMD) ParseCommand() error {
 	return err
 }
 
-func (cmd *EHLO_CMD) ProcessCommand(mailState *state.MailState, replyChannel chan reply.ReplyInterface) {
+func (cmd *EHLO_CMD) ProcessCommand(ctx *CommandContext, replyChannel chan reply.ReplyInterface) {
 	defer close(replyChannel)
 
-	err := mailState.SetMailStep(state.EHLO)
+	err := ctx.mailState.SetMailStep(state.EHLO)
 	if err != nil {
 		replyChannel <- reply.NewReply(503, err.Error())
 		return
 	}
-	mailState.ClearAll()
-	replyChannel <- reply.NewEhloReply(250)
-	return
+	ctx.mailState.ClearAll()
+
+	if !ctx.isTLS {
+		replyChannel <- reply.NewEhloReply(250, "STARTTLS")
+	} else {
+		replyChannel <- reply.NewEhloReply(250)
+	}
 }
 
 type MAIL_CMD struct {
@@ -114,15 +139,15 @@ func (cmd *MAIL_CMD) ParseCommand() error {
 	cmd.reversePath = reversepath
 	return nil
 }
-func (cmd *MAIL_CMD) ProcessCommand(mailState *state.MailState, replyChannel chan reply.ReplyInterface) {
+func (cmd *MAIL_CMD) ProcessCommand(ctx *CommandContext, replyChannel chan reply.ReplyInterface) {
 	defer close(replyChannel)
-	err := mailState.SetMailStep(state.MAIL)
+	err := ctx.mailState.SetMailStep(state.MAIL)
 	if err != nil {
 		replyChannel <- reply.NewReply(503, err.Error())
 		return
 	}
-	mailState.ClearAll()
-	mailState.AppendReversePatahBuffer([]byte(cmd.reversePath))
+	ctx.mailState.ClearAll()
+	ctx.mailState.AppendReversePatahBuffer([]byte(cmd.reversePath))
 	replyChannel <- reply.NewReply(250)
 	return
 }
@@ -141,14 +166,14 @@ func (cmd *RCPT_CMD) ParseCommand() error {
 	return nil
 }
 
-func (cmd *RCPT_CMD) ProcessCommand(mailState *state.MailState, replyChannel chan reply.ReplyInterface) {
+func (cmd *RCPT_CMD) ProcessCommand(ctx *CommandContext, replyChannel chan reply.ReplyInterface) {
 	defer close(replyChannel)
-	err := mailState.SetMailStep(state.RCPT)
+	err := ctx.mailState.SetMailStep(state.RCPT)
 	if err != nil {
 		replyChannel <- reply.NewReply(503, err.Error())
 		return
 	}
-	mailState.AppendForwardPathBuffer([]byte(cmd.forwardPath))
+	ctx.mailState.AppendForwardPathBuffer([]byte(cmd.forwardPath))
 	replyChannel <- reply.NewReply(250)
 }
 
@@ -162,9 +187,9 @@ func (cmd *DATA_CMD) ParseCommand() error {
 	return err
 }
 
-func (cmd *DATA_CMD) ProcessCommand(mailState *state.MailState, replyChannel chan reply.ReplyInterface) {
+func (cmd *DATA_CMD) ProcessCommand(ctx *CommandContext, replyChannel chan reply.ReplyInterface) {
 	defer close(replyChannel)
-	err := mailState.SetMailStep(state.DATA)
+	err := ctx.mailState.SetMailStep(state.DATA)
 	if err != nil {
 		replyChannel <- reply.NewReply(503, err.Error())
 		return
@@ -181,16 +206,16 @@ func (cmd *DATA_CMD) ProcessCommand(mailState *state.MailState, replyChannel cha
 		if line == "." {
 			break
 		}
-		mailState.AppendMailDataBuffer([]byte(line))
+		ctx.mailState.AppendMailDataBuffer([]byte(line))
 	}
 	//TODO: store the message and then clear the state
-	err = mailState.StoreBuffer()
+	err = ctx.mailState.StoreBuffer()
 	if err != nil {
 		//TODO: check if this is correct or not
 		replyChannel <- reply.NewReply(503, err.Error())
 		return
 	}
-	mailState.ClearAll()
+	ctx.mailState.ClearAll()
 
 	replyChannel <- reply.NewReply(250)
 }
@@ -203,10 +228,10 @@ func (cmd *RESET_CMD) ParseCommand() error {
 	return cmd.parser.ParseReset()
 }
 
-func (cmd *RESET_CMD) ProcessCommand(mailState *state.MailState, replyChannel chan reply.ReplyInterface) {
+func (cmd *RESET_CMD) ProcessCommand(ctx *CommandContext, replyChannel chan reply.ReplyInterface) {
 	defer close(replyChannel)
-	mailState.ClearAll()
-	mailState.SetMailStep(state.EHLO)
+	ctx.mailState.ClearAll()
+	ctx.mailState.SetMailStep(state.EHLO)
 	replyChannel <- reply.NewReply(250, "250 OK")
 }
 
@@ -246,7 +271,7 @@ func (cmd *NOOP_CMD) ParseCommand() error {
 	return cmd.parser.ParseNoop()
 }
 
-func (cmd *NOOP_CMD) ProcessCommand(mailState *state.MailState, replyChannel chan reply.ReplyInterface) {
+func (cmd *NOOP_CMD) ProcessCommand(ctx *CommandContext, replyChannel chan reply.ReplyInterface) {
 	defer close(replyChannel)
 	replyChannel <- reply.NewReply(250, "250 OK")
 }
@@ -259,14 +284,14 @@ func (cmd *QUIT_CMD) ParseCommand() error {
 	return cmd.parser.ParseQuit()
 }
 
-func (cmd *QUIT_CMD) ProcessCommand(mailState *state.MailState, replyChannel chan reply.ReplyInterface) {
+func (cmd *QUIT_CMD) ProcessCommand(ctx *CommandContext, replyChannel chan reply.ReplyInterface) {
 	defer close(replyChannel)
-	err := mailState.SetMailStep(state.IDLE)
+	err := ctx.mailState.SetMailStep(state.IDLE)
 	if err != nil {
 		replyChannel <- reply.NewReply(503)
 		return
 	}
-	mailState.ClearAll()
+	ctx.mailState.ClearAll()
 	replyChannel <- reply.NewReply(221, "221 OK")
 }
 
@@ -280,7 +305,7 @@ func (cmd *AUTH_CMD) ParseCommand() (err error) {
 	cmd.mechanism, cmd.initialResponse, err = cmd.parser.ParseAuth()
 	return err
 }
-func (cmd *AUTH_CMD) ProcessCommand(mailState *state.MailState, replyChannel chan reply.ReplyInterface) {
+func (cmd *AUTH_CMD) ProcessCommand(ctx *CommandContext, replyChannel chan reply.ReplyInterface) {
 	defer close(replyChannel)
 	mechObj, err := auth.HandleMechanism(cmd.mechanism, cmd.initialResponse)
 	if err != nil {
@@ -296,6 +321,20 @@ func (cmd *AUTH_CMD) ProcessCommand(mailState *state.MailState, replyChannel cha
 		replyChannel <- reply.NewReply(503)
 		return
 	}
+}
+
+type STARTTLS_CMD struct {
+	Command
+}
+
+func (cmd *STARTTLS_CMD) ParseCommand() (err error) {
+	return cmd.parser.ParseStartTLS()
+}
+func (cmd *STARTTLS_CMD) ProcessCommand(ctx *CommandContext, replyChannel chan reply.ReplyInterface) {
+	defer close(replyChannel)
+	replyChannel <- reply.NewReply(220, "Ready to start TLS")
+	ctx.EventChan <- CommandEvent{Name: "TLS_UPGRADE"}
+
 }
 
 func GetCommand(parser *Parser) (CommandInterface, error) {

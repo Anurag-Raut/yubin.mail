@@ -88,7 +88,7 @@ func (s *Server) Close() {
 
 func handleConn(conn net.Conn) {
 
-	session := session.NewSession(reader.NewReader(conn), writer.NewWriter(conn))
-	session.Begin()
+	session := session.NewSession(conn)
+	session.Begin(false)
 
 }

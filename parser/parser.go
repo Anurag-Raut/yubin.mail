@@ -609,3 +609,8 @@ func (p *Parser) ParseNoop() error {
 	}
 	return nil
 }
+
+func (p *Parser) ParseStartTLS() error {
+	_, err := p.Expect(CRLF)
+	return err
+}

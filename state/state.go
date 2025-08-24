@@ -3,6 +3,7 @@ package state
 import (
 	"errors"
 
+	"github.com/Yubin-email/smtp-server/logger"
 	"github.com/Yubin-email/smtp-server/store"
 )
 
@@ -55,11 +56,17 @@ func (mailState *MailState) AppendMailDataBuffer(data []byte) {
 }
 
 func (mailState *MailState) SetMailStep(step MAIL_STEP) error {
+
+	logger.Println(mailState.stepIndex, step, "SET STEP ")
 	if step == EHLO {
 
 	} else if mailState.stepIndex >= step {
 		msg := "Bad sequence of commands"
 		return errors.New(msg)
+	} else if step-mailState.stepIndex > 1 {
+		msg := "Bad sequence of commands"
+		return errors.New(msg)
+
 	}
 	mailState.stepIndex = step
 	return nil

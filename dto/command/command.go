@@ -5,6 +5,7 @@ import (
 
 	"github.com/Yubin-email/smtp-server/dto/auth"
 	"github.com/Yubin-email/smtp-server/dto/reply"
+	"github.com/Yubin-email/smtp-server/logger"
 	. "github.com/Yubin-email/smtp-server/parser"
 	"github.com/Yubin-email/smtp-server/state"
 )
@@ -21,9 +22,10 @@ type Command struct {
 }
 
 type CommandContext struct {
-	mailState *state.MailState
-	EventChan chan CommandEvent
-	isTLS     bool
+	mailState       *state.MailState
+	EventChan       chan CommandEvent
+	isTLS           bool
+	isAuthenticated bool
 }
 
 type CommandEvent struct {
@@ -50,6 +52,7 @@ func (cmd *Command) ProcessCommand(mailState *state.MailState, replyChannel chan
 }
 
 func NewCommand(commandString string, parser *Parser) CommandInterface {
+	logger.Println("commadn string", commandString)
 	switch commandString {
 	case "EHLO":
 		return &EHLO_CMD{
@@ -92,6 +95,10 @@ func NewCommand(commandString string, parser *Parser) CommandInterface {
 		return &QUIT_CMD{
 			Command: Command{commandToken: QUIT, parser: parser},
 		}
+	case "AUTH":
+		return &AUTH_CMD{
+			Command: Command{commandToken: AUTH, parser: parser},
+		}
 	default:
 		return nil
 	}
@@ -120,9 +127,9 @@ func (cmd *EHLO_CMD) ProcessCommand(ctx *CommandContext, replyChannel chan reply
 	ctx.mailState.ClearAll()
 
 	if !ctx.isTLS {
-		replyChannel <- reply.NewEhloReply(250, "STARTTLS")
+		replyChannel <- reply.NewEhloReply(250, true)
 	} else {
-		replyChannel <- reply.NewEhloReply(250)
+		replyChannel <- reply.NewEhloReply(250, false)
 	}
 }
 
@@ -141,6 +148,10 @@ func (cmd *MAIL_CMD) ParseCommand() error {
 }
 func (cmd *MAIL_CMD) ProcessCommand(ctx *CommandContext, replyChannel chan reply.ReplyInterface) {
 	defer close(replyChannel)
+	if !ctx.isAuthenticated {
+		replyChannel <- reply.NewReply(530, "Authentication Required")
+		return
+	}
 	err := ctx.mailState.SetMailStep(state.MAIL)
 	if err != nil {
 		replyChannel <- reply.NewReply(503, err.Error())
@@ -149,7 +160,6 @@ func (cmd *MAIL_CMD) ProcessCommand(ctx *CommandContext, replyChannel chan reply
 	ctx.mailState.ClearAll()
 	ctx.mailState.AppendReversePatahBuffer([]byte(cmd.reversePath))
 	replyChannel <- reply.NewReply(250)
-	return
 }
 
 type RCPT_CMD struct {
@@ -309,18 +319,18 @@ func (cmd *AUTH_CMD) ProcessCommand(ctx *CommandContext, replyChannel chan reply
 	defer close(replyChannel)
 	mechObj, err := auth.HandleMechanism(cmd.mechanism, cmd.initialResponse)
 	if err != nil {
+		logger.Println("logger", err)
 		//TODO: check error code
 		replyChannel <- reply.NewReply(503)
 		return
 	}
 
 	err = mechObj.ProcessCommand(cmd.parser, replyChannel)
-
 	if err != nil {
-		//TODO: check error code
-		replyChannel <- reply.NewReply(503)
+		ctx.mailState.ClearAll()
 		return
 	}
+	ctx.isAuthenticated = true
 }
 
 type STARTTLS_CMD struct {

@@ -39,8 +39,8 @@ func (p *Parser) ExpectMultiple(tokens ...TokenType) (string, error) {
 		}
 	}
 	return "", TokenNotFound{}
-
 }
+
 func (p *Parser) Expect(token TokenType) (string, error) {
 	switch token {
 	case SPACE:
@@ -202,6 +202,21 @@ func (p *Parser) Expect(token TokenType) (string, error) {
 	}
 
 	return "", TokenNotFound{}
+}
+
+func (p *Parser) ParseTextString(token TokenType) (s string, err error) {
+	for {
+		val, e := p.Expect(token)
+		if e != nil {
+			var notFound TokenNotFound
+			if errors.As(e, &notFound) {
+				break
+			}
+			return s, e
+		}
+		s += val
+	}
+	return s, nil
 }
 
 func (p *Parser) ParseEHLO() (string, error) {

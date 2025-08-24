@@ -3,8 +3,6 @@ package main
 import (
 	"net"
 
-	"github.com/Yubin-email/smtp-server/io/reader"
-	"github.com/Yubin-email/smtp-server/io/writer"
 	"github.com/Yubin-email/smtp-server/logger"
 	"github.com/Yubin-email/smtp-server/session"
 	"github.com/Yubin-email/smtp-server/store"

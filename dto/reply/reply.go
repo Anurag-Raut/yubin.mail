@@ -1,8 +1,10 @@
 package reply
 
 import (
-	"github.com/Yubin-email/smtp-server/io/writer"
 	"strconv"
+
+	"github.com/Yubin-email/smtp-server/io/writer"
+	"github.com/Yubin-email/smtp-server/logger"
 )
 
 var CLRF = "\r\n"
@@ -22,11 +24,6 @@ type GreetingReply struct {
 	domain string
 }
 
-type EhloReply struct {
-	Reply
-	domain string
-}
-
 func (r *Reply) format() string {
 	replyString := strconv.Itoa(int(r.code))
 	if r.text != nil && len(r.text) > 0 {
@@ -37,27 +34,13 @@ func (r *Reply) format() string {
 	}
 
 	replyString += CLRF
+	logger.Println("SENDING", replyString)
 	return replyString
 
 }
 
 func (r *GreetingReply) format() string {
 
-	replyString := strconv.Itoa(int(r.code))
-	replyString += " "
-	replyString += r.domain
-	if r.text != nil {
-
-		replyString += " "
-		//BUG: check this out later
-		replyString += (r.text[0])
-	}
-
-	replyString += CLRF
-	return (replyString)
-}
-
-func (r *EhloReply) format() string {
 	replyString := strconv.Itoa(int(r.code))
 	replyString += " "
 	replyString += r.domain
@@ -95,22 +78,7 @@ func NewReply(code uint16, textlines ...string) ReplyInterface {
 	}
 }
 
-func NewEhloReply(code uint16, textlines ...string) ReplyInterface {
-	return &EhloReply{
-		Reply: Reply{
-
-			code: code,
-			text: textlines,
-		},
-		domain: "gmail.com",
-	}
-}
-
 func (r *Reply) HandleSmtpReply(w *writer.Writer) error {
-	_, err := w.WriteString(r.format())
-	return err
-}
-func (r *EhloReply) HandleSmtpReply(w *writer.Writer) error {
 	_, err := w.WriteString(r.format())
 	return err
 }

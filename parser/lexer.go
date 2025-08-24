@@ -39,5 +39,6 @@ const (
 	DATA
 	RSET
 	HELP
+	AUTH
 	NOT_FOUND
 )

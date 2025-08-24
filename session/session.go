@@ -9,6 +9,7 @@ import (
 	"github.com/Yubin-email/smtp-server/dto/reply"
 	"github.com/Yubin-email/smtp-server/io/reader"
 	"github.com/Yubin-email/smtp-server/io/writer"
+	"github.com/Yubin-email/smtp-server/logger"
 	"github.com/Yubin-email/smtp-server/parser"
 	"github.com/Yubin-email/smtp-server/state"
 )
@@ -51,7 +52,9 @@ func (s *Session) Begin(isTls bool) {
 	cmdCtx := command.NewCommandContext(s.mailState, s.conn, isTls)
 
 	for {
+		logger.Println("Exptectin new command")
 		cmd, err := command.GetCommand(p)
+		logger.Println(cmd, "COMMANDcommand")
 		if err != nil {
 			return
 			// reply.HandleParseError(writer, cmd.GetCommandType(), err)
@@ -59,34 +62,12 @@ func (s *Session) Begin(isTls bool) {
 
 		replyChannel := make(chan reply.ReplyInterface)
 		go cmd.ProcessCommand(cmdCtx, replyChannel)
-
-		for {
-			select {
-			case responseReply, ok := <-replyChannel:
-				{
-					if !ok {
-						break
-					}
-
-					err := responseReply.HandleSmtpReply(s.writer)
-					if err != nil {
-						break
-					}
-				}
-			case event, ok := <-cmdCtx.EventChan:
-				if !ok {
-					return
-				}
-				switch event.Name {
-				case "TLS_UPGRADE":
-					if !isTls {
-						s.upgradeToTLS()
-					} else {
-						fmt.Println("already TLS present")
-						return
-					}
-
-				}
+		select {
+		case responseReply := <-replyChannel:
+			_ = responseReply.HandleSmtpReply(s.writer)
+		case event := <-cmdCtx.EventChan:
+			if event.Name == "TLS_UPGRADE" && !isTls {
+				s.upgradeToTLS()
 			}
 		}
 	}

@@ -2,6 +2,8 @@ package parser
 
 import (
 	"strings"
+
+	"github.com/Yubin-email/smtp-server/logger"
 )
 
 func (p *Parser) ParseAuth() (mechanism string, initialResponse *string, err error) {
@@ -10,28 +12,28 @@ func (p *Parser) ParseAuth() (mechanism string, initialResponse *string, err err
 		return mechanism, initialResponse, err
 	}
 
-	mechanism, err = p.Expect(ATEXT)
+	mechanism, err = p.ParseTextString(ATEXT)
 	switch strings.ToUpper(mechanism) {
 	case "PLAIN":
 		{
 			_, err := p.Expect(SPACE)
-			if err == nil {
+			if err != nil {
 				_, err := p.Expect(CRLF)
 				if err != nil {
 					return mechanism, initialResponse, err
 				}
 			}
-			initialResponseString, err := p.Expect(ATEXT)
+
+			logger.Println("IN PLAIN")
+			initialResponseString, err := p.ParseTextString(ATEXT)
 			if err != nil {
 				return mechanism, initialResponse, err
 			}
 			initialResponse = &initialResponseString
-
 			_, err = p.Expect(CRLF)
 			if err != nil {
 				return mechanism, initialResponse, err
 			}
-
 		}
 	}
 	return mechanism, initialResponse, nil

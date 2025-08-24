@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:15
+    image: postgres
     restart: always
     environment:
       POSTGRES_USER: smtpuser
@@ -10,6 +10,6 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-      - /home/anurag/projects/smtp-server/store/init:/docker-entrypoint-initdb.d/:ro
+      - /home/Qui/Projects/smtp-server/store/init:/docker-entrypoint-initdb.d/:ro
 volumes:
   db_data:

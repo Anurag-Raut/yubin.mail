@@ -9,23 +9,28 @@ import (
 	"strings"
 
 	"github.com/Yubin-email/smtp-client/io/writer"
+	"github.com/Yubin-email/smtp-client/logger"
 	"github.com/Yubin-email/smtp-client/parser"
 )
 
 const email = ""
-const username = "your_username"
-const password = "your_password"
+const username = "user@example.com"
+const password = "secret"
 const accessToken = ""
 
 func HandleAuth(mechanismsString string, enhancedStatusCode bool, w *writer.Writer, p *parser.ReplyParser) error {
+	logger.Println("in handle auth")
 	mechanisms := strings.Split(mechanismsString, " ")
 	for _, mechanism := range mechanisms {
 		mechanism = strings.ToUpper(mechanism)
+		logger.Println("mechanism", mechanism)
 		switch mechanism {
 		case "PLAIN":
 			{
+				logger.Println("In plain")
 				authStr := "\x00" + username + "\x00" + password
-				fmt.Fprintf(w, "AUTH PLAIN %s\r\n", base64.StdEncoding.EncodeToString([]byte(authStr)))
+				w.Fprintf("AUTH PLAIN %s\r\n", base64.StdEncoding.EncodeToString([]byte(authStr)))
+				logger.Println("wrote")
 				_, err := p.ParseAuthReply(enhancedStatusCode)
 				if err != nil {
 					return err

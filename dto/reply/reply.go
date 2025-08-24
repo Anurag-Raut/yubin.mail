@@ -30,17 +30,19 @@ type EhloReply struct {
 	Reply
 }
 
-func (r *EhloReply) GetKey(key string) (isPresnet bool, val string) {
+func (r *EhloReply) GetKey(key string) (isPresnet bool, val *string) {
 	for _, line := range r.textStrings {
 		parts := strings.SplitN(line, " ", 2)
 		keyInLine := parts[0]
-		valueInLine := parts[1]
+		if len(parts) > 1 {
+			val = &parts[1]
+		}
 		if keyInLine == key {
-			return true, valueInLine
+			return true, val
 		}
 	}
 
-	return false, ""
+	return false, nil
 }
 
 func (r *GreetingReply) ParseReply() error {

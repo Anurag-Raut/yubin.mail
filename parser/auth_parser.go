@@ -3,6 +3,8 @@ package parser
 import (
 	"fmt"
 	"strconv"
+
+	"github.com/Yubin-email/smtp-client/logger"
 )
 
 type AuthReply struct {
@@ -37,7 +39,7 @@ func (p *ReplyParser) ParseCRAMReply() (string, error) {
 func (p *ReplyParser) ParseAuthReply(enhancedStatusCode bool) (*AuthReply, error) {
 	authReplyObj := &AuthReply{}
 	code, err := p.expect(CODE)
-
+	logger.Println("code", code)
 	if err != nil {
 		return authReplyObj, err
 	}
@@ -46,6 +48,7 @@ func (p *ReplyParser) ParseAuthReply(enhancedStatusCode bool) (*AuthReply, error
 		return authReplyObj, err
 	}
 
+	logger.Println("iin here in auth reply parser")
 	enhancedStatusCodeString := ""
 	// Loop to parse enhanced status code: e.g., 2.7.0
 	if enhancedStatusCode {

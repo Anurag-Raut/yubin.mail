@@ -12,68 +12,53 @@ import (
 )
 
 func SendEHLO(w *writer.Writer) error {
-	_, err := w.WriteString(fmt.Sprintf("EHLO %s\r\n", config.ClientDomain))
-	return err
+	return w.Fprintf("EHLO %s\r\n", config.ClientDomain)
 }
 
 func SendMail(w *writer.Writer, reversePath string) error {
-	_, err := w.WriteString(fmt.Sprintf("MAIL FROM:<%s>\r\n", reversePath))
-	return err
+	return w.Fprintf("MAIL FROM:<%s>\r\n", reversePath)
 }
 
 func SendRcpt(w *writer.Writer, forwardPath string) error {
-	_, err := w.WriteString(fmt.Sprintf("RCPT TO:<%s>\r\n", forwardPath))
-	return err
+	return w.Fprintf("RCPT TO:<%s>\r\n", forwardPath)
 }
 
 func SendBody(w *writer.Writer, p *parser.ReplyParser, body string, from string, to string) error {
-	// Send DATA command to the server
-	_, err := w.WriteString(fmt.Sprintf("DATA\r\n"))
+	err := w.Fprintf("DATA\r\n")
 	if err != nil {
 		return err
 	}
 
-	// Await server reply after sending DATA command
 	_, err = reply.GetReply(parser.ReplyLine, p)
 	if err != nil {
 		return err
 	}
 
-	// Generate a unique Message-ID
 	msgID := fmt.Sprintf("<%s@%s>", uuid.New().String(), config.ClientDomain)
 	logger.Println("Message-ID:", msgID)
 
-	// Send headers: From, To, Subject, and Message-ID
-	_, err = w.WriteString(fmt.Sprintf("From: %s\r\n", from))
-	if err != nil {
+	if err = w.Fprintf("From: %s\r\n", from); err != nil {
 		return err
 	}
 
-	_, err = w.WriteString(fmt.Sprintf("To: %s\r\n", to))
-	if err != nil {
+	if err = w.Fprintf("To: %s\r\n", to); err != nil {
 		return err
 	}
 
-	_, err = w.WriteString(fmt.Sprintf("Subject: Test Subject\r\n"))
-	if err != nil {
+	if err = w.Fprintf("Subject: Test Subject\r\n"); err != nil {
 		return err
 	}
 
-	_, err = w.WriteString(fmt.Sprintf("Message-ID: %s\r\n", msgID))
-	if err != nil {
+	if err = w.Fprintf("Message-ID: %s\r\n", msgID); err != nil {
 		return err
 	}
 
-	// Send the body of the email
 	logger.Println("BODY", body)
-	_, err = w.WriteString(fmt.Sprintf("%s\r\n", body))
-	if err != nil {
+	if err = w.Fprintf("%s\r\n", body); err != nil {
 		return err
 	}
 
-	// End the message with a single dot on a line by itself
-	_, err = w.WriteString(fmt.Sprintf(".\r\n"))
-	if err != nil {
+	if err = w.Fprintf(".\r\n"); err != nil {
 		return err
 	}
 
@@ -81,38 +66,28 @@ func SendBody(w *writer.Writer, p *parser.ReplyParser, body string, from string,
 }
 
 func SendReset(w *writer.Writer) error {
-	_, err := w.WriteString(fmt.Sprintf("RSET\r\n"))
-
-	return err
+	return w.Fprintf("RSET\r\n")
 }
 
 func SendVerify(w *writer.Writer, identifier string) error {
-	_, err := w.WriteString(fmt.Sprintf("VRFY %s\r\f", identifier))
-	return err
+	return w.Fprintf("VRFY %s\r\f", identifier)
 }
 
 func SendExpand(w *writer.Writer, mailingList string) error {
-	_, err := w.WriteString(fmt.Sprintf("EXPN %s\r\n", mailingList))
-	return err
+	return w.Fprintf("EXPN %s\r\n", mailingList)
 }
+
 func SendHelp(w *writer.Writer, argument *string) error {
 	if argument != nil {
-		_, err := w.WriteString(fmt.Sprintf("HELP %s\r\n", *argument))
-		return err
-	} else {
-		_, err := w.WriteString(fmt.Sprintf("HELP\r\n"))
-		return err
+		return w.Fprintf("HELP %s\r\n", *argument)
 	}
-
+	return w.Fprintf("HELP\r\n")
 }
 
 func SendNoop(w *writer.Writer) error {
-
-	_, err := w.WriteString(fmt.Sprintf("NOOP\r\n"))
-	return err
+	return w.Fprintf("NOOP\r\n")
 }
 
 func SendQuit(w *writer.Writer) error {
-	_, err := w.WriteString(fmt.Sprintf("QUIT\r\f"))
-	return err
+	return w.Fprintf("QUIT\r\f")
 }

@@ -83,9 +83,17 @@ func (s *Session) SendEmail(from string, to []string, body *string, alreadyUpgra
 
 	}
 	authPresent, val := ehloReply.GetKey("AUTH")
+	logger.Println(authPresent, "AUTH PRESENT")
 	if authPresent {
+		if val == nil {
+			panic("Auth values expected but not found")
+		}
 		isEnhancedStatusCodePrecent, _ := ehloReply.GetKey("ENHANCEDSTATUSCODE")
-		auth.HandleAuth(val, isEnhancedStatusCodePrecent, s.writer, p)
+		err := auth.HandleAuth(*val, isEnhancedStatusCodePrecent, s.writer, p)
+		logger.Println("done handle auth")
+		if err != nil {
+			panic(err)
+		}
 	}
 	command.SendMail(s.writer, from)
 	logger.Println("Sent MAIL FROM command")

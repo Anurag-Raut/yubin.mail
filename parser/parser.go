@@ -2,6 +2,7 @@ package parser
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"unicode"
@@ -86,7 +87,7 @@ func (p *ReplyParser) ParseEhloResponse() (replyCode int, domain string, ehlo_li
 			return replyCode, domain, ehlo_lines, err
 		}
 
-		_, err = p.parseEhloMultiline(replyCode)
+		ehlo_lines, err = p.parseEhloMultiline(replyCode)
 		if err != nil {
 			return replyCode, domain, ehlo_lines, err
 		}
@@ -200,18 +201,19 @@ func (p *ReplyParser) parseEhloMultiline(replyCode int) (ehlo_lines []string, er
 }
 
 func (p *ReplyParser) parseEhloLine() (ehlo_line string, err error) {
-	_, err = p.expect(EHLO_KEYWORD)
+	ehlo_line, err = p.expect(EHLO_KEYWORD)
 	if err != nil {
 		return ehlo_line, err
 	}
 	for {
 		_, err := p.expect(SPACE)
 		if err == nil {
-			_, err := p.expect(EHLO_PARAM)
+			ehlo_param, err := p.expect(EHLO_PARAM)
 			if err != nil {
 				return ehlo_line, err
 			}
 
+			ehlo_line += fmt.Sprintf(" %s", ehlo_param)
 		} else if (errors.As(err, &TokenNotFound{})) {
 			break
 		} else {
@@ -535,14 +537,14 @@ func (p *ReplyParser) expect(token TokenType) (string, error) {
 					return "", err
 				}
 
-				logger.Println("Peeking byte:", bytes[0])
+				// logger.Println("Peeking byte:", bytes[0])
 
 				if len(bytes) == 0 || !(bytes[0] == '\t' || (bytes[0] >= 32 && bytes[0] <= 126)) {
-					logger.Println("Encountered invalid byte or end of input. Breaking the loop.")
+					logger.Println("Encountered invalid byte or end of input. Breaking the loop.", bytes)
 					break
 				}
 
-				logger.Println("Reading byte:", bytes[0])
+				// logger.Println("Reading byte:", bytes[0])
 
 				_, err = p.reader.ReadByte()
 				if err != nil {
@@ -551,7 +553,7 @@ func (p *ReplyParser) expect(token TokenType) (string, error) {
 
 				result = append(result, bytes[0])
 
-				logger.Println("Current result:", string(result))
+				// logger.Println("Current result:", string(result))
 			}
 
 			logger.Println("Final textstring:", string(result))

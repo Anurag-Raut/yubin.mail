@@ -20,7 +20,7 @@ func NewParser(reader *reader.Reader) *Parser {
 }
 
 func (p *Parser) ParseCommandToken() (string, error) {
-	return p.reader.ReadStringOfLen(4)
+	return p.ParseTextString(ALPHA)
 }
 
 type TokenNotFound struct {

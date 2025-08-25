@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/Yubin-email/smtp-server/io/writer"
+	"github.com/Yubin-email/smtp-server/logger"
 	"gopkg.in/yaml.v3"
 )
 
@@ -80,7 +81,7 @@ func NewEhloReply(code uint16, isTlHandshakeAlreadyDone bool) ReplyInterface {
 	if ehloCfg.EnhancedStatusCode {
 		textlines = append(textlines, ("ENHANCEDSTATUSCODES"))
 	}
-
+	logger.Println("start tls", ehloCfg.Starttls, "ISTLSHANDSHAKE", isTlHandshakeAlreadyDone)
 	if ehloCfg.Starttls && !isTlHandshakeAlreadyDone {
 		textlines = append(textlines, "STARTTLS")
 	}

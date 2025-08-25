@@ -79,7 +79,8 @@ func NewReply(code uint16, textlines ...string) ReplyInterface {
 }
 
 func (r *Reply) HandleSmtpReply(w *writer.Writer) error {
-	_, err := w.WriteString(r.format())
+	n, err := w.WriteString(r.format())
+	logger.Println("WRITINT THIS MANY BYTES", n, r.format())
 	return err
 }
 

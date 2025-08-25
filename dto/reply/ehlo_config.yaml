@@ -1,7 +1,7 @@
 
 starttls: true
 allowedAuthMechanisms:
-  - LOGIN
+  - PLAIN
   - PLAIN
 enhancedStatusCode: true
 maxMessageSize: 10485760

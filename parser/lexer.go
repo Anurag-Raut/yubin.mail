@@ -40,5 +40,6 @@ const (
 	RSET
 	HELP
 	AUTH
+	STARTTLS
 	NOT_FOUND
 )

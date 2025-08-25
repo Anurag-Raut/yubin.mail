@@ -3,5 +3,9 @@ CREATE TABLE IF NOT EXISTS users(
   
 );
 
+
 INSERT INTO users(id) 
-VALUES ('anurag@gmail.com');
+VALUES 
+  ('anurag@gmail.com'),
+  ('anurag@yubin.email'),
+  ('rautab0@localhost');

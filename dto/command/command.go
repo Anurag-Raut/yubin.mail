@@ -99,6 +99,12 @@ func NewCommand(commandString string, parser *Parser) CommandInterface {
 		return &AUTH_CMD{
 			Command: Command{commandToken: AUTH, parser: parser},
 		}
+	case "STARTTLS":
+		{
+			return &STARTTLS_CMD{
+				Command: Command{commandToken: STARTTLS, parser: parser},
+			}
+		}
 	default:
 		return nil
 	}
@@ -125,11 +131,11 @@ func (cmd *EHLO_CMD) ProcessCommand(ctx *CommandContext, replyChannel chan reply
 		return
 	}
 	ctx.mailState.ClearAll()
-
+	logger.Println("TKS IN EHLO PROCESS COMMAND", ctx.isTLS)
 	if !ctx.isTLS {
-		replyChannel <- reply.NewEhloReply(250, true)
-	} else {
 		replyChannel <- reply.NewEhloReply(250, false)
+	} else {
+		replyChannel <- reply.NewEhloReply(250, true)
 	}
 }
 
@@ -204,11 +210,11 @@ func (cmd *DATA_CMD) ProcessCommand(ctx *CommandContext, replyChannel chan reply
 		replyChannel <- reply.NewReply(503, err.Error())
 		return
 	}
-	replyChannel <- reply.NewReply(354)
+	replyChannel <- reply.NewReply(354, "DONe")
 
 	for {
 		line, err := cmd.parser.ParseDataLine()
-
+		logger.Println(line, "LINE", err)
 		if err != nil {
 			replyChannel <- reply.NewReply(502, err.Error())
 			return
@@ -218,6 +224,7 @@ func (cmd *DATA_CMD) ProcessCommand(ctx *CommandContext, replyChannel chan reply
 		}
 		ctx.mailState.AppendMailDataBuffer([]byte(line))
 	}
+	logger.Println("JUST BEORE STORE BUFFER")
 	//TODO: store the message and then clear the state
 	err = ctx.mailState.StoreBuffer()
 	if err != nil {
@@ -342,6 +349,7 @@ func (cmd *STARTTLS_CMD) ParseCommand() (err error) {
 }
 func (cmd *STARTTLS_CMD) ProcessCommand(ctx *CommandContext, replyChannel chan reply.ReplyInterface) {
 	defer close(replyChannel)
+	logger.Println("START TLS IN PROCESS COMMAND")
 	replyChannel <- reply.NewReply(220, "Ready to start TLS")
 	ctx.EventChan <- CommandEvent{Name: "TLS_UPGRADE"}
 

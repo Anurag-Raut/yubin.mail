@@ -31,6 +31,7 @@ func SendBody(w *writer.Writer, p *parser.ReplyParser, body string, from string,
 
 	_, err = reply.GetReply(parser.ReplyLine, p)
 	if err != nil {
+		logger.Println("ERRO in send body", err)
 		return err
 	}
 

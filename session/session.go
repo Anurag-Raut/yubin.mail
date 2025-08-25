@@ -33,7 +33,8 @@ func NewSession(conn net.Conn, w http.ResponseWriter) *Session {
 func (s *Session) startTLS() error {
 
 	tlsConfig := &tls.Config{
-		ServerName: "smtp.example.com", // must match cert CN or SAN
+		ServerName:         "localhost",
+		InsecureSkipVerify: true,
 	}
 	tlsConn := tls.Client(s.smtpConn, tlsConfig)
 	err := tlsConn.Handshake()
@@ -59,7 +60,7 @@ func (s *Session) SendEmail(from string, to []string, body *string, alreadyUpgra
 	logger.Println("Sent EHLO command")
 
 	ehloReplyInterface, err := reply.GetReply(parser.Ehlo, p)
-	logger.Println("Received EHLO reply")
+	logger.Println("Received EHLO reply", err)
 	if err != nil {
 		panic(err)
 	}
@@ -67,9 +68,12 @@ func (s *Session) SendEmail(from string, to []string, body *string, alreadyUpgra
 	if !ok {
 		panic("cannot convert to ehlo from ehlo reply")
 	}
+	logger.Println(ehloReply, "EHLO REPLY")
 	startTlsPresent, _ := ehloReply.GetKey("STARTTLS")
+	logger.Println("starttls presenty", startTlsPresent, alreadyUpgraded)
 	if startTlsPresent && !alreadyUpgraded {
 		err := auth.HandleTLS(s.writer, p)
+		logger.Println("HANDLE TLS DONE")
 		if err != nil {
 			panic(err)
 		}
@@ -98,22 +102,32 @@ func (s *Session) SendEmail(from string, to []string, body *string, alreadyUpgra
 	command.SendMail(s.writer, from)
 	logger.Println("Sent MAIL FROM command")
 
-	reply.GetReply(parser.ReplyLine, p)
+	_, err = reply.GetReply(parser.ReplyLine, p)
+	if err != nil {
+		panic(err)
+	}
 	logger.Println("Received MAIL FROM reply")
 
 	command.SendRcpt(s.writer, to[0])
 	logger.Println("Sent RCPT TO command for ", to[0])
 
-	reply.GetReply(parser.ReplyLine, p)
+	_, err = reply.GetReply(parser.ReplyLine, p)
+
+	if err != nil {
+		panic(err)
+	}
 	logger.Println("Received RCPT TO reply")
 
 	command.SendBody(s.writer, p, *body, from, to[0])
 	logger.Println("Sent message body")
 
-	reply.GetReply(parser.ReplyLine, p)
+	a, err := reply.GetReply(parser.ReplyLine, p)
+	if err != nil {
+		panic(err)
+	}
+	logger.Println(a.GetReplyCode())
 	logger.Println("Received final response after message body")
 	command.SendQuit(s.writer)
-
 	logger.Println("SendEmail finished")
 }
 

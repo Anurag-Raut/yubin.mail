@@ -8,9 +8,9 @@ import (
 )
 
 type AuthReply struct {
-	code               int
-	message            string
-	enhancedStatusCode *string
+	Code               int
+	Message            string
+	EnhancedStatusCode *string
 }
 
 func (p *ReplyParser) ParseCRAMReply() (string, error) {
@@ -43,7 +43,7 @@ func (p *ReplyParser) ParseAuthReply(enhancedStatusCode bool) (*AuthReply, error
 	if err != nil {
 		return authReplyObj, err
 	}
-	authReplyObj.code, err = strconv.Atoi(code)
+	authReplyObj.Code, err = strconv.Atoi(code)
 	if err != nil {
 		return authReplyObj, err
 	}
@@ -68,9 +68,14 @@ func (p *ReplyParser) ParseAuthReply(enhancedStatusCode bool) (*AuthReply, error
 			}
 		}
 	}
-	authReplyObj.enhancedStatusCode = &enhancedStatusCodeString
+	authReplyObj.EnhancedStatusCode = &enhancedStatusCodeString
 	text, err := p.expect(TEXT_STRING)
-	authReplyObj.message = text
+	authReplyObj.Message = text
+
+	_, err = p.expect(CRLF)
+	if err != nil {
+		return authReplyObj, err
+	}
 	return authReplyObj, nil
 
 }

@@ -18,6 +18,13 @@ const username = "user@example.com"
 const password = "secret"
 const accessToken = ""
 
+func IsError(r *parser.AuthReply) error {
+	if r.Code >= 400 && r.Code <= 599 {
+		return errors.New(r.Message)
+	}
+	return nil
+}
+
 func HandleAuth(mechanismsString string, enhancedStatusCode bool, w *writer.Writer, p *parser.ReplyParser) error {
 	logger.Println("in handle auth")
 	mechanisms := strings.Split(mechanismsString, " ")
@@ -30,10 +37,13 @@ func HandleAuth(mechanismsString string, enhancedStatusCode bool, w *writer.Writ
 				logger.Println("In plain")
 				authStr := "\x00" + username + "\x00" + password
 				w.Fprintf("AUTH PLAIN %s\r\n", base64.StdEncoding.EncodeToString([]byte(authStr)))
-				logger.Println("wrote")
-				_, err := p.ParseAuthReply(enhancedStatusCode)
+				authReply, err := p.ParseAuthReply(enhancedStatusCode)
 				if err != nil {
 					return err
+				}
+				err = IsError(authReply)
+				if err != nil {
+					continue
 				}
 				return nil
 			}
@@ -57,11 +67,16 @@ func HandleAuth(mechanismsString string, enhancedStatusCode bool, w *writer.Writ
 				responseB64 := base64.StdEncoding.EncodeToString([]byte(response))
 
 				fmt.Fprintf(w, "%s\r\n", responseB64)
-				_, err = p.ParseAuthReply(enhancedStatusCode)
+				authReply, err := p.ParseAuthReply(enhancedStatusCode)
 				if err != nil {
 					return err
 				}
+				err = IsError(authReply)
+				if err != nil {
+					continue
+				}
 				return nil
+
 			}
 		case "XOAUTH2":
 			{
@@ -69,9 +84,13 @@ func HandleAuth(mechanismsString string, enhancedStatusCode bool, w *writer.Writ
 				xoauthEncoded := base64.StdEncoding.EncodeToString([]byte(xoauthStr))
 
 				fmt.Fprintf(w, "AUTH XOAUTH2 %s\r\n", xoauthEncoded)
-				_, err := p.ParseAuthReply(enhancedStatusCode)
+				authReply, err := p.ParseAuthReply(enhancedStatusCode)
 				if err != nil {
 					return err
+				}
+				err = IsError(authReply)
+				if err != nil {
+					continue
 				}
 				return nil
 			}
@@ -82,11 +101,11 @@ func HandleAuth(mechanismsString string, enhancedStatusCode bool, w *writer.Writ
 		}
 	}
 
-	return errors.New("Auth Mechanism handler Not found")
+	return errors.New("No auth mechanism couldn't handle it")
 }
 
 func HandleTLS(w *writer.Writer, p *parser.ReplyParser) error {
-	fmt.Fprint(w, "STARTTLS")
+	w.WriteString("STARTTLS\r\n")
 	_, err := p.ParseStartTLSReply()
 	// tlsReply := &tlsReplyObj.(parser.StartTlsReply)
 

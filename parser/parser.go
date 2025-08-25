@@ -636,6 +636,7 @@ func (p *ReplyParser) expect(token TokenType) (string, error) {
 		{
 
 			bytes, err := p.reader.Peek(3)
+			logger.Println("CODE:", string(bytes))
 
 			if err != nil {
 				return "", nil

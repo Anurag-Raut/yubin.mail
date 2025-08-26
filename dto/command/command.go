@@ -12,7 +12,7 @@ import (
 )
 
 func SendEHLO(w *writer.Writer) error {
-	return w.Fprintf("EHLO %s\r\n", config.ClientDomain)
+	return w.Fprintf("EHLO %s\r\n", config.ClientConfig.Domain)
 }
 
 func SendMail(w *writer.Writer, reversePath string) error {
@@ -35,7 +35,7 @@ func SendBody(w *writer.Writer, p *parser.ReplyParser, body string, from string,
 		return err
 	}
 
-	msgID := fmt.Sprintf("<%s@%s>", uuid.New().String(), config.ClientDomain)
+	msgID := fmt.Sprintf("<%s@%s>", uuid.New().String(), config.ClientConfig.Domain)
 	logger.Println("Message-ID:", msgID)
 
 	if err = w.Fprintf("From: %s\r\n", from); err != nil {

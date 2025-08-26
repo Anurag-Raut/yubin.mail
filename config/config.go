@@ -11,6 +11,7 @@ type client_config struct {
 	ServerName   string `yaml:"ServerName"`
 	Organization string `yaml:"Organization"`
 	IP           string `yaml:"IP"`
+	Domain       string `yaml:"Domain"`
 }
 
 func loadConfig() client_config {

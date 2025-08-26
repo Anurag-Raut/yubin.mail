@@ -11,6 +11,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/Yubin-email/smtp-server/config"
 	"github.com/Yubin-email/smtp-server/dto/command"
 	"github.com/Yubin-email/smtp-server/dto/reply"
 	"github.com/Yubin-email/smtp-server/io/reader"
@@ -39,13 +40,11 @@ func NewSession(conn net.Conn) *Session {
 }
 
 func generateSelfSignedCert() (tls.Certificate, error) {
-	// Generate a new private key
 	priv, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return tls.Certificate{}, err
 	}
 
-	// Create a certificate template
 	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
 	if err != nil {
 		return tls.Certificate{}, err
@@ -54,11 +53,11 @@ func generateSelfSignedCert() (tls.Certificate, error) {
 	tmpl := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			CommonName:   "localhost", // optional, legacy
-			Organization: []string{"Example Co"},
+			CommonName:   config.ServerConfig.Domain,
+			Organization: []string{config.ServerConfig.Organization},
 		},
-		DNSNames:    []string{"localhost"},              // SAN for hostname
-		IPAddresses: []net.IP{net.ParseIP("127.0.0.1")}, // SAN for IP
+		DNSNames:    []string{config.ServerConfig.Domain},
+		IPAddresses: []net.IP{net.ParseIP(config.ServerConfig.IP)},
 		NotBefore:   time.Now(),
 		NotAfter:    time.Now().Add(365 * 24 * time.Hour),
 
@@ -67,13 +66,11 @@ func generateSelfSignedCert() (tls.Certificate, error) {
 		BasicConstraintsValid: true,
 	}
 
-	// Self-sign the certificate
 	derBytes, err := x509.CreateCertificate(rand.Reader, &tmpl, &tmpl, &priv.PublicKey, priv)
 	if err != nil {
 		return tls.Certificate{}, err
 	}
 
-	// Encode into a tls.Certificate (PEM wrapping not needed here)
 	cert := tls.Certificate{
 		Certificate: [][]byte{derBytes},
 		PrivateKey:  priv,

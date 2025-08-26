@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/Yubin-email/smtp-client/config"
 	"github.com/Yubin-email/smtp-client/dto/auth"
 	"github.com/Yubin-email/smtp-client/dto/command"
 	"github.com/Yubin-email/smtp-client/dto/reply"
@@ -33,7 +34,7 @@ func NewSession(conn net.Conn, w http.ResponseWriter) *Session {
 func (s *Session) startTLS() error {
 
 	tlsConfig := &tls.Config{
-		ServerName:         "localhost",
+		ServerName:         config.ClientConfig.ServerName,
 		InsecureSkipVerify: true,
 	}
 	tlsConn := tls.Client(s.smtpConn, tlsConfig)

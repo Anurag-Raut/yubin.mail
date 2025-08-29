@@ -1,0 +1,45 @@
+package parser
+
+type TokenType int
+
+const (
+	// COMMANDS
+
+	TEXT TokenType = iota
+	CRLF
+	SPACE
+	LEFT_ANGLE_BRAC
+	RIGHT_ANGLE_BRAC
+	COLON
+	ALPHA
+	DIGIT
+	HYPHEN
+	DOT
+	KEYWORD
+	AT
+	ATEXT
+	QTEXTSMTP
+	QPAIRSMTP
+	DQUOTE
+	LEFT_SQUARE_BRAC
+	RIGHT_SQUARE_BRAC
+)
+
+type CommandToken TokenType
+
+const (
+	EHLO CommandToken = iota
+	HELO
+	MAIL
+	RCPT
+	QUIT
+	EXPN
+	VRFY
+	NOOP
+	DATA
+	RSET
+	HELP
+	AUTH
+	STARTTLS
+	NOT_FOUND
+)

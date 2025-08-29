@@ -1,0 +1,7 @@
+
+starttls: true
+allowedAuthMechanisms:
+  - PLAIN
+  - PLAIN
+enhancedStatusCode: true
+maxMessageSize: 10485760

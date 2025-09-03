@@ -2,10 +2,11 @@ package main
 
 import (
 	"net"
+	"os"
 
 	"github.com/Yubin-email/internal/logger"
-	"github.com/Yubin-email/smtp-server/session"
 	"github.com/Yubin-email/smtp-server/store"
+	"github.com/joho/godotenv"
 )
 
 type Server struct {
@@ -84,9 +85,19 @@ func (s *Server) Close() {
 	}
 }
 
-func handleConn(conn net.Conn) {
+func main() {
+	env := os.Getenv("APP_ENV")
+	envFile := "dev.env"
+	if env == "prod" {
+		envFile = ".env"
+	} else {
+		envFile = "dev.env"
+	}
+	godotenv.Load(envFile)
+	cfg := NewConfig()
 
-	session := session.NewSession(conn)
-	session.Begin(false)
-
+	cfg.SetAddr(os.Getenv("ADDRESS"))
+	cfg.SetPort(os.Getenv("PORT"))
+	clientServer := NewServer(cfg)
+	clientServer.Listen()
 }

@@ -46,7 +46,7 @@ func (p *Parser) ParseGreeting() (identifier string, textStrings []string, err e
 		return identifier, textStrings, errors.New("Error while converting the status code into int")
 	}
 	if statusCode != 220 {
-		return identifier, textStrings, errors.New("Expected status Code as 220")
+		return identifier, textStrings, errors.New("expected status code as 220")
 	}
 
 	_, err = p.expect(SPACE)
@@ -134,8 +134,6 @@ func (p *Parser) ParseEhloResponse() (replyCode int, domain string, ehlo_lines [
 	} else {
 		return replyCode, domain, ehlo_lines, err
 	}
-
-	return replyCode, domain, ehlo_lines, err
 }
 
 func (p *Parser) parseEhloMultiline(replyCode int) (ehlo_lines []string, err error) {
@@ -401,7 +399,7 @@ func (p *Parser) parseMultiLineTextString() (identifier string, textStrings []st
 			return identifier, textStrings, err
 		}
 		if code != 220 {
-			return identifier, textStrings, errors.New("Could not parse Code")
+			return identifier, textStrings, errors.New("could not parse code")
 		}
 
 		_, err = p.expect(HYPHEN)

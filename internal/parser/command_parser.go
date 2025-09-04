@@ -102,6 +102,9 @@ func (p *Parser) parsePath() (string, error) {
 	p.parseAD1() //ignore source routes
 
 	mailbox, err := p.parseMailBox()
+	if err != nil {
+		return "", err
+	}
 	_, err = p.expect(RIGHT_ANGLE_BRAC)
 	if err != nil {
 		return "", err

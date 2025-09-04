@@ -13,6 +13,9 @@ func (p *Parser) ParseAuth() (mechanism string, initialResponse *string, err err
 	}
 
 	mechanism, err = p.ParseTextString(ATEXT)
+	if err != nil {
+		return mechanism, initialResponse, err
+	}
 	switch strings.ToUpper(mechanism) {
 	case "PLAIN":
 		{

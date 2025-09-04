@@ -5,7 +5,8 @@ import (
 	"os"
 
 	"github.com/Yubin-email/internal/logger"
-	"github.com/Yubin-email/smtp-server/store"
+	"github.com/Yubin-email/internal/smtp/mta"
+	"github.com/Yubin-email/internal/store"
 	"github.com/joho/godotenv"
 )
 
@@ -72,7 +73,7 @@ func (s *Server) Listen() {
 				logger.Println("Error", err.Error())
 			}
 		}
-		go handleConn(c)
+		go mta.HandleConn(c)
 	}
 }
 

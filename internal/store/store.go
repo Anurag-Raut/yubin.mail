@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Yubin-email/smtp-server/logger"
+	"github.com/Yubin-email/internal/logger"
 	"github.com/jackc/pgx/v5"
 )
 

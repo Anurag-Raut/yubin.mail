@@ -325,3 +325,7 @@ func (p *Parser) ParseStartTLS() error {
 	_, err := p.expect(CRLF)
 	return err
 }
+
+func (p *Parser) ParseCommandToken() (string, error) {
+	return p.ParseTextString(ALPHA)
+}

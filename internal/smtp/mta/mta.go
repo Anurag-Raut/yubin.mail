@@ -11,14 +11,14 @@ import (
 	"net"
 	"time"
 
-	"github.com/Yubin-email/smtp-server/config"
-	"github.com/Yubin-email/smtp-server/dto/command"
-	"github.com/Yubin-email/smtp-server/dto/reply"
-	"github.com/Yubin-email/smtp-server/io/reader"
-	"github.com/Yubin-email/smtp-server/io/writer"
-	"github.com/Yubin-email/smtp-server/logger"
-	"github.com/Yubin-email/smtp-server/parser"
-	"github.com/Yubin-email/smtp-server/state"
+	"github.com/Yubin-email/config"
+	"github.com/Yubin-email/internal/io/reader"
+	"github.com/Yubin-email/internal/io/writer"
+	"github.com/Yubin-email/internal/logger"
+	"github.com/Yubin-email/internal/parser"
+	"github.com/Yubin-email/internal/smtp/command"
+	"github.com/Yubin-email/internal/smtp/reply"
+	"github.com/Yubin-email/internal/state"
 )
 
 type Session struct {
@@ -101,7 +101,7 @@ func (s *Session) Begin(isTls bool) {
 		reply.Greet(s.writer)
 	}
 	p := parser.NewParser(s.reader)
-	cmdCtx := command.NewCommandContext(s.mailState, s.conn, isTls)
+	cmdCtx := command.NewCommandContext(s.mailState, isTls)
 
 	for {
 		b, err := s.reader.Peek(1)

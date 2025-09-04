@@ -10,6 +10,12 @@ type Parser struct {
 	reader *reader.Reader
 }
 
+func NewParser(reader *reader.Reader) *Parser {
+	return &Parser{
+		reader: reader,
+	}
+}
+
 func (p *Parser) expectMultiple(tokens ...TokenType) (string, error) {
 	for _, token := range tokens {
 		value, err := p.expect(token)

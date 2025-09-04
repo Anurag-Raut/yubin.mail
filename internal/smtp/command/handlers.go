@@ -1,9 +1,9 @@
 package command
 
 import (
-	"github.com/Yubin-email/smtp-server/dto/auth"
-	"github.com/Yubin-email/smtp-server/dto/reply"
-	"github.com/Yubin-email/smtp-server/state"
+	"github.com/Yubin-email/internal/smtp/auth"
+	"github.com/Yubin-email/internal/smtp/reply"
+	"github.com/Yubin-email/internal/state"
 )
 
 type CommandContext struct {

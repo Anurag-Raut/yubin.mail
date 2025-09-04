@@ -1,14 +1,15 @@
 package command
 
 import (
-	"github.com/Yubin-email/smtp-server/logger"
-	"github.com/Yubin-email/smtp-server/parser"
+	"github.com/Yubin-email/internal/logger"
+	"github.com/Yubin-email/internal/parser"
+	"github.com/Yubin-email/internal/smtp/reply"
 )
 
 type CommandInterface interface {
 	GetCommandType() CommandToken
 	ParseCommand() error
-	ProcessCommand(ctx *CommandContext, replyChannel chan ReplyInterface)
+	ProcessCommand(ctx *CommandContext, replyChannel chan reply.ReplyInterface)
 }
 
 type Command struct {
@@ -24,23 +25,23 @@ func NewCommand(commandString string, p *parser.Parser) CommandInterface {
 	logger.Println("command string", commandString)
 	switch commandString {
 	case "EHLO":
-		return &EHLO_CMD{Command{commandToken: EHLO, parser: p}}
+		return &EHLO_CMD{Command: Command{commandToken: EHLO, parser: p}}
 	case "MAIL":
-		return &MAIL_CMD{Command{commandToken: MAIL, parser: p}}
+		return &MAIL_CMD{Command: Command{commandToken: MAIL, parser: p}}
 	case "RCPT":
-		return &RCPT_CMD{Command{commandToken: RCPT, parser: p}}
+		return &RCPT_CMD{Command: Command{commandToken: RCPT, parser: p}}
 	case "DATA":
-		return &DATA_CMD{Command{commandToken: DATA, parser: p}}
+		return &DATA_CMD{Command: Command{commandToken: DATA, parser: p}}
 	case "NOOP":
-		return &NOOP_CMD{Command{commandToken: NOOP, parser: p}}
+		return &NOOP_CMD{Command: Command{commandToken: NOOP, parser: p}}
 	case "RSET":
-		return &RESET_CMD{Command{commandToken: RSET, parser: p}}
+		return &RESET_CMD{Command: Command{commandToken: RSET, parser: p}}
 	case "QUIT":
-		return &QUIT_CMD{Command{commandToken: QUIT, parser: p}}
+		return &QUIT_CMD{Command: Command{commandToken: QUIT, parser: p}}
 	case "AUTH":
-		return &AUTH_CMD{Command{commandToken: AUTH, parser: p}}
+		return &AUTH_CMD{Command: Command{commandToken: AUTH, parser: p}}
 	case "STARTTLS":
-		return &STARTTLS_CMD{Command{commandToken: STARTTLS, parser: p}}
+		return &STARTTLS_CMD{Command: Command{commandToken: STARTTLS, parser: p}}
 	default:
 		return nil
 	}

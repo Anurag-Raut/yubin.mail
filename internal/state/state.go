@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/Yubin-email/internal/logger"
-	"github.com/Yubin-email/smtp-server/store"
+	"github.com/Yubin-email/internal/store"
 )
 
 type MAIL_STEP int

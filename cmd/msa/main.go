@@ -1,4 +1,4 @@
-package msa
+package main
 
 import (
 	"net"

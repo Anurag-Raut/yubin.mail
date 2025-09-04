@@ -1,4 +1,4 @@
-package mta
+package msa
 
 import (
 	"net"
@@ -8,7 +8,7 @@ import (
 
 func HandleConn(conn net.Conn) {
 
-	session := session.NewSession(conn, "mta")
+	session := session.NewSession(conn, "msa")
 	session.Begin(false)
 
 }

@@ -36,7 +36,7 @@ func (c *Config) SetAddr(address string) {
 
 func NewServer(c Config) *Server {
 	addr := "127.0.0.1"
-	port := "587" // standard port for MSA
+	port := "587"
 	if c.address != nil {
 		addr = *c.address
 	}

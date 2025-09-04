@@ -1,4 +1,6 @@
 IP: "127.0.0.1"
 Domain: "localhost"
 Organization: "Yubin Co"
+MSA_PORT: "587"
+MSA_ADDRESS: "127.0.0.1"
 
